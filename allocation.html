@@ -1,0 +1,1011 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Licence Allocation Framework, prototype v1.5</title>
+<style>
+:root{
+  --ink:#172433;--muted:#4e5a66;--soft-muted:#687582;
+  --blue:#175a8b;--blue-dark:#0d4068;--blue-tint:#eaf4fb;
+  --green:#276749;--green-tint:#e6f1ea;--amber:#8a5a00;
+  --warn-bg:#fdf3d5;--warn-br:#e2c97a;--warn-ink:#5c3d00;
+  --paper:#f7f8f7;--panel:#ffffff;--line:#c7cfd6;
+  --purple:#5b3f8c;--purple-tint:#f1edf6;--purple-br:#c8b8e0;
+  --baseline-bg:#f0ece3;--baseline-br:#c9bfa0;--baseline-ink:#5a4b1f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1120px;margin:auto;padding:0 24px}
+header{background:#fff;border-bottom:1px solid var(--line);padding:34px 0}
+h1{font-size:38px;line-height:1.1;margin:0 0 10px;color:var(--ink)}
+h2{font-size:24px;margin:36px 0 8px;color:var(--ink)}
+h3{font-size:17px;margin:0 0 6px;color:var(--ink)}
+h4{font-size:13px;margin:16px 0 8px;color:var(--baseline-ink);text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+.lede{color:var(--muted);max-width:72ch;margin:0}
+.tag{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--blue)}
+.status{display:inline-block;margin-top:16px;padding:9px 12px;background:var(--warn-bg);border:1px solid var(--warn-br);color:var(--warn-ink);border-radius:4px;font-size:14px}
+
+/* Baseline input section */
+.baseline-input{background:var(--baseline-bg);border:1px solid var(--baseline-br);border-left:4px solid var(--amber);border-radius:0 5px 5px 0;padding:22px;margin:14px 0 20px}
+.baseline-input h3{margin-top:0}
+.baseline-input .btag{font-size:11px;font-weight:700;color:var(--baseline-ink);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px}
+.baseline-input p{color:var(--baseline-ink);margin:0 0 10px;font-size:14.5px}
+.baseline-input label{display:block;font-size:12px;font-weight:600;color:var(--baseline-ink);margin:12px 0 4px;text-transform:uppercase;letter-spacing:.04em}
+.baseline-input input,.baseline-input textarea{width:100%;padding:10px 12px;border:1px solid var(--baseline-br);border-radius:4px;font:inherit;color:var(--ink);background:#fff}
+.baseline-input input:focus,.baseline-input textarea:focus{outline:2px solid var(--amber);outline-offset:1px;border-color:var(--amber)}
+.group-list{margin-top:12px}
+.group-row{display:grid;grid-template-columns:1fr 2fr auto;gap:8px;margin-bottom:8px;align-items:start}
+.group-row textarea,.group-row input{margin:0;width:100%;padding:10px 12px;border:1px solid var(--baseline-br);border-radius:4px;font:inherit;color:var(--ink);background:#fff;resize:vertical}
+.group-row button{background:#fff;color:var(--muted);border:1px solid var(--baseline-br);border-radius:4px;padding:10px 14px;font:inherit;cursor:pointer;height:fit-content}
+.group-row button:hover{color:var(--warn-ink);border-color:var(--amber)}
+.add-group{background:#fff;color:var(--baseline-ink);border:1px dashed var(--baseline-br);border-radius:4px;padding:10px 14px;font:inherit;cursor:pointer;margin-top:4px}
+.add-group:hover{border-style:solid;border-color:var(--amber)}
+.source-note{margin-top:14px;padding:10px 12px;background:#fff;border:1px dashed var(--baseline-br);border-radius:4px;font-size:13px;color:var(--baseline-ink);line-height:1.5}
+
+/* Mode selector */
+.mode-select{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0 20px}
+.mode{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:20px;cursor:pointer;text-align:left;font:inherit;color:var(--ink)}
+.mode:hover{border-color:var(--blue)}
+.mode:focus{outline:2px solid var(--blue);outline-offset:1px}
+.mode[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-tint);box-shadow:inset 4px 0 var(--blue)}
+.mode .mtag{font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;display:block}
+.mode h3{margin:0 0 6px}
+.mode p{margin:0;color:var(--muted);font-size:14.5px}
+.mode .mwhen{font-size:12px;color:var(--soft-muted);margin-top:8px}
+
+/* Session context */
+.session{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:20px;margin:16px 0}
+.session h3{margin:0 0 12px;font-size:16px}
+.session-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.session label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.session input,.session textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:4px;font:inherit;color:var(--ink);background:#fff}
+.session input:focus,.session textarea:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
+
+/* Cards */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:20px;margin:14px 0}
+.card.locked{opacity:.45;pointer-events:none}
+.card.device{border-left:4px solid var(--purple)}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:4px;flex-wrap:wrap}
+.card-num{font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.04em}
+.card-num.device{color:var(--purple)}
+.card-meta{font-size:12px;color:var(--soft-muted);text-align:right;line-height:1.5}
+.card>p{color:var(--muted);margin:4px 0 10px;font-size:14.5px}
+
+/* Baseline display in P5 */
+.baseline-display{background:var(--baseline-bg);border-left:4px solid var(--amber);border-radius:0 4px 4px 0;padding:14px 16px;margin:12px 0;color:var(--baseline-ink)}
+.baseline-display .bdtag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px}
+.baseline-display .bdsection{margin-top:10px}
+.baseline-display .bdsection-label{font-size:12px;font-weight:700;color:var(--baseline-ink);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
+.baseline-display .bdtext{white-space:pre-wrap;color:var(--ink);font-size:14px;line-height:1.5;background:#fff;padding:10px 12px;border-radius:4px;border:1px solid var(--baseline-br)}
+.baseline-display .bdgroup{display:block;background:#fff;padding:10px 12px;margin-top:6px;border:1px solid var(--baseline-br);border-radius:4px;font-size:14px}
+.baseline-display .bdgroup strong{color:var(--ink)}
+.baseline-display .bdgroup .bdbaseline{color:var(--muted);font-size:13px;display:block;margin-top:4px;white-space:pre-wrap;line-height:1.5}
+.baseline-display .empty{font-style:italic;color:var(--baseline-ink);opacity:.7;font-size:13.5px}
+
+/* Constraints */
+.constraint{background:var(--warn-bg);border-left:4px solid var(--amber);border-radius:0 4px 4px 0;padding:12px 14px;margin:14px 0;font-size:14px;color:var(--warn-ink);line-height:1.5}
+.constraint .ctag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px}
+.constraint.blue{background:var(--blue-tint);border-left-color:var(--blue);color:var(--ink)}
+.constraint.blue .ctag{color:var(--blue-dark)}
+.constraint.purple{background:var(--purple-tint);border-left-color:var(--purple);color:var(--ink)}
+.constraint.purple .ctag{color:var(--purple)}
+
+/* Options */
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.opt{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:4px;padding:12px 14px;font:inherit;color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--blue)}
+.opt:focus{outline:2px solid var(--blue);outline-offset:1px}
+.opt[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-tint);box-shadow:inset 3px 0 var(--blue);color:var(--blue-dark);font-weight:600}
+.opt-title{display:block;font-weight:600}
+.opt-sub{display:block;font-size:13px;color:var(--muted);margin-top:3px;font-weight:400}
+.opt[aria-pressed="true"] .opt-sub{color:var(--blue-dark)}
+
+/* Specialist capability cards (P6) */
+.spec-panel{margin-top:14px}
+.spec-panel h4{color:var(--ink);margin:14px 0 8px}
+.spec-panel h4:first-child{margin-top:0}
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.spec{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:4px;cursor:pointer;font-size:14px;line-height:1.45}
+.spec:hover{border-color:var(--blue)}
+.spec.checked{border-color:var(--blue);background:var(--blue-tint)}
+.spec input{margin-top:3px;flex-shrink:0}
+.spec .spec-text{flex:1}
+.spec .spec-name{display:block;font-weight:600;color:var(--ink)}
+.spec .spec-eg{display:block;color:var(--muted);font-size:13px;margin-top:3px}
+.spec .spec-term{display:block;color:var(--soft-muted);font-size:11.5px;margin-top:6px;font-style:italic}
+.spec .spec-term strong{font-style:normal;text-transform:uppercase;letter-spacing:.03em;font-weight:700;color:var(--soft-muted)}
+.spec.checked .spec-eg{color:var(--blue-dark)}
+
+/* Targeted group checkboxes in P4 */
+.group-check{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:4px;margin-top:8px;cursor:pointer}
+.group-check:hover{border-color:var(--blue)}
+.group-check.checked{border-color:var(--blue);background:var(--blue-tint)}
+.group-check input{margin-top:4px}
+.group-check .gc-text{flex:1}
+.group-check .gc-name{font-weight:600;display:block;color:var(--ink)}
+.group-check .gc-baseline{font-size:13px;color:var(--muted);margin-top:4px;display:block;white-space:pre-wrap;line-height:1.5}
+.group-check.checked .gc-baseline{color:var(--blue-dark)}
+
+/* Yes/no checks */
+.checks{border-top:1px solid var(--line);margin-top:12px}
+.check-row{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+.cond{flex:1;font-size:14.5px;line-height:1.5}
+.cnum{font-size:11px;font-weight:700;color:var(--soft-muted);margin-right:8px;text-transform:uppercase;letter-spacing:.04em}
+.yn{display:flex;gap:6px;flex-shrink:0}
+.yn button{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;border:1px solid var(--line);background:#fff;color:var(--muted);padding:6px 12px;border-radius:4px;cursor:pointer;font-family:inherit}
+.yn button:hover{border-color:var(--soft-muted)}
+.yn button:focus{outline:2px solid var(--blue);outline-offset:1px}
+.yn button[aria-pressed="true"][data-v="y"]{background:#e6f1ea;border-color:var(--green);color:var(--green)}
+.yn button[aria-pressed="true"][data-v="n"]{background:var(--warn-bg);border-color:var(--amber);color:var(--warn-ink)}
+
+/* Text inputs */
+textarea,input[type=text],input[type=number],input[type=date]{
+  width:100%;font:inherit;color:var(--ink);
+  border:1px solid var(--line);border-radius:4px;padding:10px 12px;background:#fff;
+  margin-top:8px;resize:vertical;
+}
+textarea:focus,input:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
+label.fl{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:block;margin-top:12px}
+
+/* Actions */
+.actions{display:flex;gap:10px;margin-top:24px;padding:16px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+button.primary{background:var(--blue);color:#fff;border:0;border-radius:4px;padding:12px 20px;font:inherit;font-weight:700;cursor:pointer}
+button.primary:hover{background:var(--blue-dark)}
+button.primary:focus{outline:2px solid var(--ink);outline-offset:2px}
+button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:12px 16px;font:inherit;cursor:pointer}
+button.secondary:hover{border-color:var(--blue);color:var(--blue-dark)}
+
+/* Result */
+.result{background:var(--ink);color:#fff;border-radius:5px;padding:22px;margin:24px 0}
+.result .rtag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#9ec8e3}
+.result .rtitle{font-size:24px;font-weight:700;display:block;margin:6px 0 10px}
+.result p{color:#c9d2db;margin:0 0 10px;font-size:14.5px;line-height:1.55}
+.result .rrecord{margin-top:16px;padding-top:16px;border-top:1px solid #2c3a4a;font-size:13.5px;color:#9ec8e3}
+.result .rrecord-row{display:flex;gap:12px;padding:4px 0;align-items:flex-start}
+.result .rrecord-k{min-width:170px;color:#9ec8e3;font-size:12px;text-transform:uppercase;letter-spacing:.04em;font-weight:600;flex-shrink:0;padding-top:2px}
+.result .rrecord-v{color:#fff;flex:1;white-space:pre-wrap}
+
+.flow-section{display:none}
+.flow-section.active{display:block}
+
+@media(max-width:820px){
+  .mode-select,.session-row,.spec-grid{grid-template-columns:1fr}
+  .group-row{grid-template-columns:1fr}
+  h1{font-size:30px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="tag">M365 Licence Audit and Allocation Framework</div>
+    <h1>Licence Allocation Prototype</h1>
+    <p class="lede">The baseline is produced by the baseline tool and pasted in here. This tool runs the two F3 gates, checks special group membership, applies the right baseline, lists any specialist capabilities this person needs on top, and records the decision.</p>
+    <div class="status"><strong>Prototype for comment (v1.5).</strong> P6 (additional requirements) is now a structured list of specialist capabilities named in plain language, so the decision record tells HR and IT exactly what to provision.</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<h2>Council baseline for this session</h2>
+
+<section class="baseline-input">
+  <span class="btag">Pasted from the baseline tool. Enter once per session.</span>
+  <h3>Pre-computed baseline</h3>
+  <p>Paste the baseline tool's output. The org-wide baseline is the licence stack that applies to everyone. Special group baselines apply only to people in that group, usually stacked on top of or replacing the org-wide baseline.</p>
+
+  <label for="blRef">Reference (baseline tool output version or date)</label>
+  <input type="text" id="blRef" placeholder="For example: Baseline output, approved 10 March 2026">
+
+  <label for="blBaseline">Org-wide baseline</label>
+  <textarea id="blBaseline" rows="4" placeholder="For example:&#10;Frontline route: F3 + F5 Compliance Add-on&#10;Desktop route: E3 + Advanced Audit&#10;Covers: MFA, CA, DLP, basic retention, managed devices, Advanced Audit for all users."></textarea>
+
+  <label>Special group baselines</label>
+  <div class="group-list" id="groupList"></div>
+  <button class="add-group" id="addGroup" type="button">+ Add a special group</button>
+
+  <div class="source-note"><strong>Where this comes from.</strong> The baseline tool translates the council's requirements into licence stacks. That translation happens once at council level; this allocation tool applies the result to each person without re-translating.</div>
+</section>
+
+<h2>Choose the flow</h2>
+<p class="lede">Most allocations are per person. For shared-device scenarios, run the device flow so one assessment covers all users on that device.</p>
+
+<div class="mode-select">
+  <button class="mode" id="modePerson" aria-pressed="true">
+    <span class="mtag">Flow A</span>
+    <h3>Person allocation</h3>
+    <p>One member of staff needs a licence. Joiner, mover or review.</p>
+    <div class="mwhen">Run per person. Every joiner and move.</div>
+  </button>
+  <button class="mode" id="modeDevice" aria-pressed="false">
+    <span class="mtag">Flow B</span>
+    <h3>Shared device scenario</h3>
+    <p>A device is used by several people. Depot tablets, kiosks, training rooms, mobile teams.</p>
+    <div class="mwhen">Run per scenario, not per user.</div>
+  </button>
+</div>
+
+<!-- =========================== PERSON FLOW =========================== -->
+<section class="flow-section active" id="personFlow">
+
+<section class="session">
+  <h3>Session context for this person</h3>
+  <div class="session-row">
+    <div>
+      <label for="allocRef">Allocation reference</label>
+      <input type="text" id="allocRef" placeholder="For example: joiner request JR-2026-0812">
+    </div>
+    <div>
+      <label for="allocDate">Date</label>
+      <input type="date" id="allocDate">
+    </div>
+  </div>
+  <div style="margin-top:12px">
+    <label for="allocRole">Role and service area</label>
+    <input type="text" id="allocRole" placeholder="For example: Housing officer, Housing Services">
+  </div>
+</section>
+
+<div class="card" id="p1">
+  <div class="card-head"><span class="card-num">P1</span><span class="card-meta">Service desk<br>Every allocation</span></div>
+  <h3>Is this a person?</h3>
+  <p>Service accounts, shared mailboxes, privileged administrator accounts and guest access are handled by the account classes annex, not this flow.</p>
+  <div class="opts" data-group="isuser">
+    <button class="opt" data-v="yes" aria-pressed="false"><span class="opt-title">Yes, a named member of staff</span><span class="opt-sub">Continue</span></button>
+    <button class="opt" data-v="no" aria-pressed="false"><span class="opt-title">No, another account type</span><span class="opt-sub">Go to the account classes annex</span></button>
+  </div>
+</div>
+
+<div class="card locked" id="p2">
+  <div class="card-head"><span class="card-num">P2</span><span class="card-meta">Microsoft Product Terms<br>Contractual eligibility test</span></div>
+  <h3>Gate 1: Frontline Worker eligibility</h3>
+  <p>Does at least one of these apply? Contractual test, not a job-title test. F3 can only be allocated where one is true.</p>
+  <div class="checks" id="elig">
+    <div class="check-row"><span class="cond"><span class="cnum">E1</span>The person's primary work device has a single screen smaller than 10.9 inches</span><span class="yn" data-i="0"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+    <div class="check-row"><span class="cond"><span class="cnum">E2</span>The person's primary work device is shared with other Frontline Worker licensed users across shifts, and is also those users' primary work device</span><span class="yn" data-i="1"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+  </div>
+</div>
+
+<div class="card locked" id="p3">
+  <div class="card-head"><span class="card-num">P3</span><span class="card-meta">Service desk<br>Technical capability test</span></div>
+  <h3>Gate 2: F3 suitability</h3>
+  <p>Only complete this if Gate 1 passes. Mark each statement that is true for this person. Any 'No' sends them to the desktop route.</p>
+  <div class="checks" id="suit">
+    <div class="check-row"><span class="cond"><span class="cnum">S1</span>Office for the web and permitted mobile apps are sufficient; no desktop Office apps are needed</span><span class="yn" data-i="0"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+    <div class="check-row"><span class="cond"><span class="cnum">S2</span>No line of business system depends on desktop Office or an Office add-in</span><span class="yn" data-i="1"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+    <div class="check-row"><span class="cond"><span class="cnum">S3</span>A 2 GB Exchange mailbox is sufficient</span><span class="yn" data-i="2"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+    <div class="check-row"><span class="cond"><span class="cnum">S4</span>Outlook desktop, archive mailbox and delegated mailbox functionality are not required</span><span class="yn" data-i="3"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+    <div class="check-row"><span class="cond"><span class="cnum">S5</span>2 GB OneDrive storage is sufficient</span><span class="yn" data-i="4"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+    <div class="check-row"><span class="cond"><span class="cnum">S6</span>The work does not depend on desktop macros or large data Office processing</span><span class="yn" data-i="5"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+  </div>
+
+  <div id="devBranch" class="constraint purple" style="display:none;margin-top:14px">
+    <span class="ctag">Branch to device flow</span>
+    Only the desktop application conditions (S1 or S2) failed, and the device is shared. Device-based Office licensing may be cheaper than upgrading. Switch to the device flow.
+  </div>
+</div>
+
+<div class="card locked" id="p4">
+  <div class="card-head"><span class="card-num">P4</span><span class="card-meta">Service desk, with manager<br>Per person</span></div>
+  <h3>Special group membership</h3>
+  <p>Does this person belong to any of the special groups listed in the baseline? Tick each that applies. Each ticked group brings its own baseline, on top of the org-wide one.</p>
+
+  <div id="groupChecks"></div>
+</div>
+
+<div class="card locked" id="p5">
+  <div class="card-head"><span class="card-num">P5</span><span class="card-meta">Baseline applied<br>From the baseline tool</span></div>
+  <h3>Baseline that applies to this person</h3>
+  <p>Combines the org-wide baseline with any special group baselines selected at P4. Based on Gate results, the person is on the frontline or desktop route; apply the matching variant from the baseline(s) below.</p>
+
+  <div class="baseline-display" id="baselineDisplay">
+    <span class="bdtag">Applied baseline</span>
+    <div id="baselineDisplayContent"></div>
+  </div>
+
+  <div class="opts" data-group="baselineMet">
+    <button class="opt" data-v="confirm" aria-pressed="false"><span class="opt-title">Confirm: apply the baseline as shown</span><span class="opt-sub">The baseline above is what this person gets, matched to their frontline or desktop route</span></button>
+    <button class="opt" data-v="override" aria-pressed="false"><span class="opt-title">Override: this person needs more or less than the baseline</span><span class="opt-sub">Record the reason; service desk may need approval</span></button>
+  </div>
+  <div id="overrideFields" style="display:none">
+    <label class="fl" for="overrideReason">Reason for override</label>
+    <textarea id="overrideReason" rows="2" placeholder="For example: person is a privileged admin but not yet in the admin special group list; apply F5 Security while governance is updated."></textarea>
+  </div>
+</div>
+
+<div class="card locked" id="p6">
+  <div class="card-head"><span class="card-num">P6</span><span class="card-meta">Manager states the need<br>IT provisions</span></div>
+  <h3>Specialist capabilities beyond baseline</h3>
+  <p>Tick anything this person needs on top of the applied baseline. Each ticked item appears in the decision record with its licence name, ready for HR and IT to provision. Most people need nothing extra here.</p>
+  <div class="constraint"><span class="ctag">Constraint</span>Each capability must have a stated business need. "They are a specialist" is not a reason; "needs to publish Power BI reports to around 40 service managers" is. State the need in the justification field below.</div>
+
+  <div id="specList" class="spec-panel"></div>
+
+  <label class="fl" for="specOther">Other specialist capability not listed above</label>
+  <textarea id="specOther" rows="2" placeholder="For example: Dynamics 365 Customer Service for a specific contact centre role. Name the product and the reason."></textarea>
+
+  <label class="fl" for="specJustification">Business justification for the capabilities selected</label>
+  <textarea id="specJustification" rows="3" placeholder="For example: Power BI Pro — publishes monthly service dashboards to the housing management team (around 40 viewers). Teams Phone — team lead role, replacing council mobile. Project Plan 3 — managing transformation workstream through March 2027."></textarea>
+</div>
+
+<div class="card locked" id="p7">
+  <div class="card-head"><span class="card-num">P7</span><span class="card-meta">Before provisioning</span></div>
+  <h3>Permanent or time limited?</h3>
+  <p>Asked before anything is provisioned, so the end date exists from the start rather than being added later.</p>
+  <div class="opts" data-group="perm">
+    <button class="opt" data-v="Permanent" aria-pressed="false"><span class="opt-title">Permanent</span><span class="opt-sub">Reviewed at the next scheduled audit</span></button>
+    <button class="opt" data-v="Temporary" aria-pressed="false"><span class="opt-title">Time limited</span><span class="opt-sub">Record an end date and the expected action</span></button>
+  </div>
+  <div id="tempFields" style="display:none">
+    <label class="fl" for="endDate">End or review date</label>
+    <input type="date" id="endDate">
+    <label class="fl" for="endAction">Expected action at that date</label>
+    <textarea id="endAction" rows="2" placeholder="For example: remove the Project Plan 3 licence when the transformation project closes. Default is that it lapses unless re-justified."></textarea>
+  </div>
+</div>
+
+<div class="card locked" id="p8">
+  <div class="card-head"><span class="card-num">P8</span><span class="card-meta">Full requirement set<br>Actual council pricing</span></div>
+  <h3>Commercial optimisation</h3>
+  <p>Compare the applied baseline plus any specialist capabilities against a bundled higher tier.</p>
+  <div class="constraint"><span class="ctag">Constraint</span>No fixed rule such as "three add-ons means E5". Break-even varies by starting licence and commercial arrangement. Use actual council pricing. See the commercial comparison template.</div>
+  <div class="opts" data-group="commercial">
+    <button class="opt" data-v="Base plus add-ons" aria-pressed="false"><span class="opt-title">Base plus add-ons is cheaper</span><span class="opt-sub">Provision the components</span></button>
+    <button class="opt" data-v="Bundled tier" aria-pressed="false"><span class="opt-title">The bundled tier is cheaper</span><span class="opt-sub">Move up. Record any displaced product saving.</span></button>
+    <button class="opt" data-v="Overhead exception" aria-pressed="false"><span class="opt-title">Add-ons are cheaper, but the bundle is being chosen anyway</span><span class="opt-sub">Overhead exception. Requires recorded reason and approval.</span></button>
+  </div>
+  <div id="excFields" style="display:none">
+    <label class="fl" for="excReason">Why does the administrative overhead outweigh the licence saving?</label>
+    <textarea id="excReason" rows="2" placeholder="For example: six separate add-ons for 400 users would need manual tracking with no automation available."></textarea>
+  </div>
+</div>
+
+</section>
+
+<!-- =========================== DEVICE FLOW =========================== -->
+<section class="flow-section" id="deviceFlow">
+
+<div class="card device">
+  <div class="card-head"><span class="card-num device">D0</span><span class="card-meta">Small team<br>Not the service desk</span></div>
+  <h3>Scenario details</h3>
+  <p>Device licensing is a scenario-level decision. Run once for the whole shared-device population, not per user. The baseline you pasted at the top still applies to every user in this scenario.</p>
+  <div class="session-row" style="margin-top:12px">
+    <div>
+      <label class="fl" for="scenarioName">Scenario name</label>
+      <input type="text" id="scenarioName" placeholder="For example: Depot 3 wardens">
+    </div>
+    <div>
+      <label class="fl" for="scenarioLocation">Location or team</label>
+      <input type="text" id="scenarioLocation" placeholder="For example: Argyll and Bute, depot operations">
+    </div>
+  </div>
+  <div class="session-row">
+    <div>
+      <label class="fl" for="userCount">Number of users sharing the device(s)</label>
+      <input type="number" id="userCount" min="1" placeholder="For example: 10">
+    </div>
+    <div>
+      <label class="fl" for="deviceCount">Number of devices</label>
+      <input type="number" id="deviceCount" min="1" placeholder="For example: 2">
+    </div>
+  </div>
+</div>
+
+<div class="card device">
+  <div class="card-head"><span class="card-num device">D1</span><span class="card-meta">Procurement<br>Before anything else</span></div>
+  <h3>Test 1: agreement eligibility</h3>
+  <p>Can the council procure a device licence under its current Microsoft agreement?</p>
+  <div class="constraint"><span class="ctag">Constraint</span>If the SKU is not available under the agreement, the rest of the flow is academic. Confirm this test first.</div>
+  <div class="opts" data-group="d1">
+    <button class="opt" data-v="Available" aria-pressed="false"><span class="opt-title">SKU available under current agreement</span><span class="opt-sub">Standard procurement route confirmed</span></button>
+    <button class="opt" data-v="Needs renegotiation" aria-pressed="false"><span class="opt-title">Available but needs agreement renegotiation</span><span class="opt-sub">Not procurable today</span></button>
+    <button class="opt" data-v="Unavailable" aria-pressed="false"><span class="opt-title">Not available under current agreement</span><span class="opt-sub">Device licensing not viable; use per-user allocation</span></button>
+    <button class="opt" data-v="Unconfirmed" aria-pressed="false"><span class="opt-title">Not yet confirmed</span><span class="opt-sub">Pending Microsoft or reseller response; defer the outcome</span></button>
+  </div>
+</div>
+
+<div class="card device locked" id="d2card">
+  <div class="card-head"><span class="card-num device">D2</span><span class="card-meta">IT<br>Per scenario</span></div>
+  <h3>Test 2: technical fit</h3>
+  <p>Do the users of this shared device need only what a device licence covers, plus their existing user licences for anything else?</p>
+  <div class="constraint blue"><span class="ctag">Note</span>Microsoft 365 Apps for Enterprise (Device) covers desktop productivity apps for a shared device. Intune device-only manages the device but does not cover user features like email. These often stack rather than compete.</div>
+  <div class="checks" id="d2checks">
+    <div class="check-row"><span class="cond"><span class="cnum">T1</span>Users' application needs are covered by the device licence</span><span class="yn" data-i="0"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+    <div class="check-row"><span class="cond"><span class="cnum">T2</span>User features needed (email, calendar) are covered by existing user licences</span><span class="yn" data-i="1"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+    <div class="check-row"><span class="cond"><span class="cnum">T3</span>No line of business systems require named-user context to function</span><span class="yn" data-i="2"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+    <div class="check-row"><span class="cond"><span class="cnum">T4</span>No individual users have compliance obligations that device licensing cannot satisfy</span><span class="yn" data-i="3"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+  </div>
+</div>
+
+<div class="card device locked" id="d3card">
+  <div class="card-head"><span class="card-num device">D3</span><span class="card-meta">Procurement or IT<br>Actual council pricing</span></div>
+  <h3>Test 3: commercial fit</h3>
+  <p>Does device licensing cost less than per-user upgrade at this user-to-device ratio?</p>
+  <div class="constraint"><span class="ctag">Constraint</span>At small ratios (two users per device) device licensing rarely wins. At larger ratios (ten users per device) it usually does.</div>
+  <div class="opts" data-group="d3">
+    <button class="opt" data-v="Device cheaper" aria-pressed="false"><span class="opt-title">Device route is cheaper with a clear margin</span><span class="opt-sub">Continue to test 4</span></button>
+    <button class="opt" data-v="Per-user cheaper" aria-pressed="false"><span class="opt-title">Per-user route is cheaper at this ratio</span><span class="opt-sub">Fall back to per-user allocation</span></button>
+    <button class="opt" data-v="Marginal" aria-pressed="false"><span class="opt-title">Costs are close, ratio may be unstable</span><span class="opt-sub">Defer; add a review date</span></button>
+    <button class="opt" data-v="Pending" aria-pressed="false"><span class="opt-title">Pricing not yet confirmed</span><span class="opt-sub">Defer pending Microsoft or reseller response</span></button>
+  </div>
+  <label class="fl" for="d3note">Pricing notes or working (optional)</label>
+  <textarea id="d3note" rows="2" placeholder="For example: 10 users at F3 upgrade cost vs 2 Microsoft 365 Apps for Enterprise (Device) licences + 2 Intune device-only. Break-even at 6 users per device."></textarea>
+</div>
+
+<div class="card device locked" id="d4card">
+  <div class="card-head"><span class="card-num device">D4</span><span class="card-meta">IT<br>Final gate</span></div>
+  <h3>Test 4: dependencies and constraints</h3>
+  <p>Any other reasons device licensing would not work?</p>
+  <div class="checks" id="d4checks">
+    <div class="check-row"><span class="cond"><span class="cnum">C1</span>The device supports the enrolment path required for the licence</span><span class="yn" data-i="0"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+    <div class="check-row"><span class="cond"><span class="cnum">C2</span>Users' work patterns are shared, not hybrid across personal and shared devices</span><span class="yn" data-i="1"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+    <div class="check-row"><span class="cond"><span class="cnum">C3</span>No per-user audit or attribution requirement exceeds what device licensing supports</span><span class="yn" data-i="2"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+    <div class="check-row"><span class="cond"><span class="cnum">C4</span>No unusual security requirements (kiosk lockdown, guest access) blocking the scenario</span><span class="yn" data-i="3"><button data-v="y" aria-pressed="false">Yes</button><button data-v="n" aria-pressed="false">No</button></span></div>
+  </div>
+</div>
+
+</section>
+
+<!-- =========================== ACTIONS + RESULT =========================== -->
+<div class="actions">
+  <button class="primary" id="calc">Show route</button>
+  <button class="secondary" id="copyRec">Copy decision record</button>
+  <button class="secondary" id="reset">Reset person allocation</button>
+  <button class="secondary" id="resetAll" style="margin-left:auto">Reset everything (including baseline)</button>
+</div>
+
+<div class="result" id="res">
+  <span class="rtag">Outcome</span>
+  <span class="rtitle" id="rtitle">Awaiting input</span>
+  <p id="rnote">Paste the baseline at the top, then work through the cards.</p>
+  <div class="rrecord" id="rrecord" style="display:none"></div>
+</div>
+
+</main>
+
+<script>
+/* ---- Specialist capabilities ---- */
+const SPECIALISTS = [
+  { panel: 'Reporting, data and automation', items: [
+    { id:'pbi_pro',  name:'Publish and share Power BI reports',
+      eg:'For example: publishing monthly service dashboards to around 40 managers.',
+      term:'Power BI Pro' },
+    { id:'pbi_ppu',  name:'Work with very large Power BI datasets, paginated reports or AI features',
+      eg:'For data volumes beyond Power BI Pro limits, or enterprise paginated reports.',
+      term:'Power BI Premium Per User' },
+    { id:'pa_prem',  name:'Build workflows that connect to systems outside Microsoft 365',
+      eg:'For example: syncing data between the housing system and SharePoint.',
+      term:'Power Automate Premium (premium connectors, HTTP, RPA)' },
+    { id:'papp_prem',name:'Build custom apps that access data outside Microsoft 365',
+      eg:'For example: a complaints logging app writing to the CRM.',
+      term:'Power Apps Premium' },
+  ]},
+  { panel: 'Communication and meetings', items: [
+    { id:'tphone',   name:'Make and receive phone calls using Teams',
+      eg:'Replaces a desk phone or council mobile. Needs a phone number assigned.',
+      term:'Teams Phone' },
+    { id:'tprem',    name:'Host webinars or large meetings with registration, Q&A and advanced controls',
+      eg:'For example: public consultation events, large all-staff briefings.',
+      term:'Teams Premium' },
+    { id:'audconf',  name:'Allow dial-in by phone to Teams meetings this person chairs',
+      eg:'For meetings with guests who need to join by phone, not computer.',
+      term:'Audio Conferencing (dial-in)' },
+  ]},
+  { panel: 'Project and technical work', items: [
+    { id:'proj3',    name:'Build and manage project schedules, Gantt charts and resource plans',
+      eg:'For project managers running structured projects.',
+      term:'Project Plan 3' },
+    { id:'visio2',   name:'Create technical diagrams (network, process, floor plans)',
+      eg:'For architects, process designers, facilities staff.',
+      term:'Visio Plan 2' },
+  ]},
+  { panel: 'AI assistance', items: [
+    { id:'m365cop',  name:'Use Copilot across Word, Excel, Outlook, Teams and other Microsoft 365 apps',
+      eg:'AI assistant across daily productivity tools. Usually assessed within a council Copilot pilot.',
+      term:'Microsoft 365 Copilot' },
+    { id:'copstudio',name:'Build custom AI assistants for specific council workflows',
+      eg:'For example: a chatbot answering common HR questions. Specialist use, often part of a pilot.',
+      term:'Copilot Studio' },
+  ]},
+  { panel: 'Administration, identity and specialist tools', items: [
+    { id:'admacct',  name:'Hold a dedicated administrative account separate from the main account',
+      eg:'For staff with privileged M365 admin roles. Separate account, separate licence.',
+      term:'Admin account (separately licensed user)' },
+    { id:'entragov', name:'Run access reviews, lifecycle workflows and entitlement management',
+      eg:'For IAM leads automating joiner/mover/leaver at scale.',
+      term:'Entra ID Governance' },
+    { id:'win365',   name:'Use a Windows cloud desktop (instead of a physical council laptop)',
+      eg:'For contractors, temporary staff, or a managed BYOD approach.',
+      term:'Windows 365 Cloud PC' },
+    { id:'ame',      name:'Send encrypted emails with the ability to revoke access or set expiry',
+      eg:'For roles handling very sensitive external correspondence.',
+      term:'Advanced Message Encryption' },
+  ]}
+];
+
+function findSpec(id){
+  for(const panel of SPECIALISTS){
+    const it=panel.items.find(x=>x.id===id);
+    if(it)return it;
+  }
+  return null;
+}
+
+/* ---- State ---- */
+const S={
+  mode:'person',
+  blRef:'',blBaseline:'',specialGroups:[],
+  isuser:null,elig:[null,null],suit:[null,null,null,null,null,null],
+  selectedGroups:[],baselineMet:null,overrideReason:'',
+  specialists:[],specOther:'',specJustification:'',
+  perm:null,endDate:'',endAction:'',
+  commercial:null,excReason:'',
+  allocRef:'',allocDate:'',allocRole:'',
+  scenarioName:'',scenarioLocation:'',userCount:'',deviceCount:'',
+  d1:null,d2checks:[null,null,null,null],d3:null,d3note:'',d4checks:[null,null,null,null]
+};
+
+function $(i){return document.getElementById(i)}
+function press(b,on){b.setAttribute('aria-pressed',on?'true':'false')}
+
+/* ---- Render specialist list ---- */
+function renderSpecList(){
+  const c=$('specList');c.innerHTML='';
+  SPECIALISTS.forEach(panel=>{
+    const h=document.createElement('h4');h.textContent=panel.panel;c.appendChild(h);
+    const grid=document.createElement('div');grid.className='spec-grid';
+    panel.items.forEach(it=>{
+      const checked=S.specialists.indexOf(it.id)>-1;
+      const row=document.createElement('label');
+      row.className='spec'+(checked?' checked':'');
+      row.innerHTML='<input type="checkbox" data-id="'+it.id+'" '+(checked?'checked':'')+'>'+
+        '<span class="spec-text">'+
+          '<span class="spec-name">'+it.name+'</span>'+
+          '<span class="spec-eg">'+it.eg+'</span>'+
+          '<span class="spec-term"><strong>Microsoft licence:</strong> '+it.term+'</span>'+
+        '</span>';
+      grid.appendChild(row);
+    });
+    c.appendChild(grid);
+  });
+}
+
+$('specList').addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.id){
+    const id=t.dataset.id;
+    const i=S.specialists.indexOf(id);
+    if(t.checked && i===-1)S.specialists.push(id);
+    if(!t.checked && i>-1)S.specialists.splice(i,1);
+    renderSpecList();
+    unlockPerson();
+  }
+});
+
+/* ---- Special groups input management ---- */
+function renderGroupList(){
+  const list=$('groupList');list.innerHTML='';
+  S.specialGroups.forEach((g,i)=>{
+    const row=document.createElement('div');row.className='group-row';
+    row.innerHTML='<input type="text" placeholder="Group name" data-i="'+i+'" data-f="name" value="'+g.name.replace(/"/g,'&quot;')+'">'+
+                  '<textarea rows="2" placeholder="Baseline for this group (licence stack, pasted from baseline tool)" data-i="'+i+'" data-f="baseline">'+g.baseline.replace(/</g,'&lt;')+'</textarea>'+
+                  '<button type="button" data-remove="'+i+'">Remove</button>';
+    list.appendChild(row);
+  });
+  renderGroupChecks();
+  renderBaselineDisplay();
+}
+
+$('addGroup').addEventListener('click',()=>{
+  S.specialGroups.push({name:'',baseline:''});
+  renderGroupList();
+});
+
+$('groupList').addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.f){
+    const i=+t.dataset.i;
+    S.specialGroups[i][t.dataset.f]=t.value;
+    renderGroupChecks();
+    renderBaselineDisplay();
+  }
+});
+$('groupList').addEventListener('click',e=>{
+  const t=e.target;
+  if(t.dataset.remove!==undefined){
+    const i=+t.dataset.remove;
+    S.specialGroups.splice(i,1);
+    S.selectedGroups=S.selectedGroups.filter(idx=>idx!==i).map(idx=>idx>i?idx-1:idx);
+    renderGroupList();
+  }
+});
+
+/* ---- Baseline display inside P5 ---- */
+function renderBaselineDisplay(){
+  const c=$('baselineDisplayContent');c.innerHTML='';
+
+  const ref=document.createElement('div');ref.className='bdsection';
+  ref.innerHTML='<div class="bdsection-label">Reference</div>'+
+    (S.blRef?'<div class="bdtext">'+S.blRef+'</div>':'<div class="empty">No reference entered yet.</div>');
+  c.appendChild(ref);
+
+  const org=document.createElement('div');org.className='bdsection';
+  org.innerHTML='<div class="bdsection-label">Org-wide baseline (applies to every user)</div>'+
+    (S.blBaseline?'<div class="bdtext">'+S.blBaseline+'</div>':'<div class="empty">No org-wide baseline entered yet.</div>');
+  c.appendChild(org);
+
+  const sel=document.createElement('div');sel.className='bdsection';
+  let selHtml='<div class="bdsection-label">Special group baselines applied to this person</div>';
+  const applied=S.selectedGroups.map(i=>S.specialGroups[i]).filter(g=>g&&g.name);
+  if(applied.length){
+    applied.forEach(g=>{selHtml+='<div class="bdgroup"><strong>'+g.name+'</strong><span class="bdbaseline">'+(g.baseline||'(no baseline entered)')+'</span></div>'});
+  } else if(S.specialGroups.filter(g=>g.name).length){
+    selHtml+='<div class="empty">None selected at P4. If this person should be in a special group, go back to P4.</div>';
+  } else {
+    selHtml+='<div class="empty">No special groups entered at the top.</div>';
+  }
+  sel.innerHTML=selHtml;
+  c.appendChild(sel);
+}
+
+/* ---- Special group selection in P4 ---- */
+function renderGroupChecks(){
+  const c=$('groupChecks');c.innerHTML='';
+  const named=S.specialGroups.filter(g=>g.name);
+  if(!named.length){
+    c.innerHTML='<div class="constraint blue" style="margin-top:0"><span class="ctag">Nothing to select</span>No special groups have been entered at the top. If there are special groups in the council baseline that apply to this person, add them at the top and come back.</div>';
+    return;
+  }
+  S.specialGroups.forEach((g,i)=>{
+    if(!g.name)return;
+    const row=document.createElement('label');
+    row.className='group-check'+(S.selectedGroups.indexOf(i)>-1?' checked':'');
+    row.innerHTML='<input type="checkbox" data-gi="'+i+'" '+(S.selectedGroups.indexOf(i)>-1?'checked':'')+'>'+
+      '<span class="gc-text"><span class="gc-name">'+g.name+'</span><span class="gc-baseline">'+(g.baseline||'(no baseline entered for this group)')+'</span></span>';
+    c.appendChild(row);
+  });
+}
+
+$('groupChecks').addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.gi!==undefined){
+    const i=+t.dataset.gi;
+    const idx=S.selectedGroups.indexOf(i);
+    if(t.checked && idx===-1)S.selectedGroups.push(i);
+    if(!t.checked && idx>-1)S.selectedGroups.splice(idx,1);
+    renderGroupChecks();
+    renderBaselineDisplay();
+  }
+});
+
+/* ---- Mode switching ---- */
+function setMode(m){
+  S.mode=m;
+  $('modePerson').setAttribute('aria-pressed',m==='person'?'true':'false');
+  $('modeDevice').setAttribute('aria-pressed',m==='device'?'true':'false');
+  $('personFlow').classList.toggle('active',m==='person');
+  $('deviceFlow').classList.toggle('active',m==='device');
+  resetResult();
+}
+$('modePerson').addEventListener('click',()=>setMode('person'));
+$('modeDevice').addEventListener('click',()=>setMode('device'));
+
+/* ---- Single-select options ---- */
+document.addEventListener('click',e=>{
+  const opt=e.target.closest('.opt');
+  if(!opt)return;
+  const grp=opt.closest('[data-group]');
+  if(!grp)return;
+  const key=grp.dataset.group;
+  S[key]=opt.dataset.v;
+  grp.querySelectorAll('.opt').forEach(o=>press(o,o===opt));
+  if(key==='perm')$('tempFields').style.display=(S.perm==='Temporary'?'block':'none');
+  if(key==='commercial')$('excFields').style.display=(S.commercial==='Overhead exception'?'block':'none');
+  if(key==='baselineMet')$('overrideFields').style.display=(S.baselineMet==='override'?'block':'none');
+  unlockPerson();unlockDevice();
+});
+
+/* ---- Yes/no checks ---- */
+function wireChecks(id,arr){
+  $(id).addEventListener('click',e=>{
+    const b=e.target.closest('button');
+    if(!b)return;
+    const g=b.parentNode,i=+g.dataset.i;
+    S[arr][i]=(b.dataset.v==='y');
+    g.querySelectorAll('button').forEach(x=>press(x,x===b));
+    unlockPerson();unlockDevice();
+  });
+}
+wireChecks('elig','elig');
+wireChecks('suit','suit');
+wireChecks('d2checks','d2checks');
+wireChecks('d4checks','d4checks');
+
+/* ---- Text inputs ---- */
+['blRef','blBaseline','allocRef','allocDate','allocRole','specOther','specJustification','endDate','endAction','excReason','overrideReason',
+ 'scenarioName','scenarioLocation','userCount','deviceCount','d3note'].forEach(id=>{
+  $(id).addEventListener('input',function(){S[id]=this.value;if(id==='blRef'||id==='blBaseline')renderBaselineDisplay()});
+});
+
+/* ---- Progressive unlock ---- */
+function unlockPerson(){
+  const eligDone=S.elig.every(c=>c!==null);
+  const suitDone=S.suit.every(c=>c!==null);
+  const eligPass=eligDone && S.elig.some(c=>c===true);
+  const suitPass=suitDone && S.suit.every(c=>c===true);
+  const specChosen = S.specialists.length>0 || S.specOther.trim().length>0;
+
+  $('p2').classList.toggle('locked',S.isuser!=='yes');
+  $('p3').classList.toggle('locked',!(S.isuser==='yes' && eligDone && eligPass));
+  $('p4').classList.toggle('locked',!(S.isuser==='yes' && eligDone));
+  $('p5').classList.toggle('locked',!(S.isuser==='yes' && eligDone));
+  $('p6').classList.toggle('locked',!(S.isuser==='yes' && eligDone && S.baselineMet));
+  $('p7').classList.toggle('locked',!(S.isuser==='yes' && eligDone && S.baselineMet && specChosen));
+  $('p8').classList.toggle('locked',!(S.isuser==='yes' && eligDone && S.baselineMet));
+
+  const onlyDesktop = suitDone && !S.suit[0] && !S.suit[1] && S.suit.slice(2).every(c=>c===true);
+  const alsoShared = S.elig[1]===true;
+  $('devBranch').style.display = (eligPass && onlyDesktop && alsoShared) ? 'block' : 'none';
+}
+
+function unlockDevice(){
+  const d2done=S.d2checks.every(c=>c!==null);
+  const d2pass=d2done && S.d2checks.every(c=>c===true);
+  $('d2card').classList.toggle('locked',S.d1!=='Available');
+  $('d3card').classList.toggle('locked',!(S.d1==='Available' && d2pass));
+  $('d4card').classList.toggle('locked',!(S.d1==='Available' && d2pass && S.d3==='Device cheaper'));
+}
+
+/* ---- Isuser option handler (need to run unlock) ---- */
+document.addEventListener('click',e=>{
+  const opt=e.target.closest('.opt');
+  if(!opt)return;
+  const grp=opt.closest('[data-group="isuser"]');
+  if(grp)unlockPerson();
+});
+
+/* ---- Outcome logic ---- */
+function personOutcome(){
+  if(S.isuser==='no')return {title:'Account classes annex',note:'This account type is handled outside the allocation flow. Still counts against the licence total; see the account classes annex.'};
+  if(S.isuser!=='yes')return null;
+
+  const eligDone=S.elig.every(c=>c!==null);
+  if(!eligDone)return null;
+  const eligPass = S.elig.some(c=>c===true);
+
+  if(!eligPass){
+    return {title:'Desktop route',note:'Person does not meet Product Terms eligibility for Frontline Worker. Apply the desktop variant of the baseline (and any special group baselines), plus any specialist capabilities. Run the commercial check.'};
+  }
+
+  const suitDone=S.suit.every(c=>c!==null);
+  if(!suitDone)return null;
+  const suitPass = S.suit.every(c=>c===true);
+
+  if(!suitPass){
+    const onlyDesktop = !S.suit[0] && !S.suit[1] && S.suit.slice(2).every(c=>c===true);
+    const alsoShared = S.elig[1]===true;
+    if(onlyDesktop && alsoShared){
+      return {title:'Switch to device scenario flow',note:'Person is eligible for frontline licensing but needs desktop Office capability. Device is shared, so device-based licensing may cost less. Run the device scenario flow.'};
+    }
+    const fails=[];S.suit.forEach((c,i)=>{if(c===false)fails.push('S'+(i+1))});
+    return {title:'Desktop route',note:'Person is eligible for frontline licensing but F3 is not suitable (failed: '+fails.join(', ')+'). Apply the desktop variant of the baseline (and any special group baselines), plus any specialist capabilities. Run the commercial check.'};
+  }
+
+  if(S.baselineMet==='override'){
+    return {title:'Frontline route, with baseline override',note:'Person passes both gates. Baseline overridden for this allocation; reason recorded. Approval may be required. Run the commercial check on the actual stack.'};
+  }
+
+  if(S.baselineMet==='confirm'){
+    const groupCount=S.selectedGroups.length;
+    const specCount=S.specialists.length;
+    let note='Person passes both gates. Frontline variant of the baseline applies';
+    if(groupCount>0)note+=', plus baseline for '+groupCount+' special group'+(groupCount===1?'':'s');
+    if(specCount>0)note+=', plus '+specCount+' specialist capabilit'+(specCount===1?'y':'ies');
+    note+='. Run the commercial check.';
+    return {title:'Frontline route (baseline as pasted)',note:note};
+  }
+
+  return {title:'Baseline confirmation incomplete',note:'Confirm or override the baseline at P5 before continuing.'};
+}
+
+function deviceOutcome(){
+  if(S.d1==='Unavailable')return {title:'Not viable, use per-user allocation',note:'Current agreement does not permit device licensing for this scenario.'};
+  if(S.d1==='Needs renegotiation')return {title:'Deferred to next agreement cycle',note:'Available in principle but requires renegotiation. Record for the next agreement review.'};
+  if(S.d1==='Unconfirmed')return {title:'Deferred pending confirmation',note:'Users remain on interim licences. Review when the Microsoft or reseller response lands.'};
+
+  const d2done=S.d2checks.every(c=>c!==null);
+  if(S.d1==='Available' && d2done && !S.d2checks.every(c=>c===true)){
+    return {title:'Not viable, use per-user allocation',note:'Technical fit test failed. Device licensing cannot meet the users\' needs.'};
+  }
+
+  if(S.d3==='Per-user cheaper')return {title:'Not viable, use per-user allocation',note:'Per-user route is cheaper at this ratio.'};
+  if(S.d3==='Marginal'||S.d3==='Pending')return {title:'Deferred',note:'Pricing not yet clear enough to decide. Users on interim licences; set a review date.'};
+
+  const d4done=S.d4checks.every(c=>c!==null);
+  if(S.d3==='Device cheaper' && d4done){
+    if(!S.d4checks.every(c=>c===true))return {title:'Not viable, use per-user allocation',note:'Constraints identified in test 4.'};
+    return {title:'Device is licensed, users on frontline user licences',note:'All four tests passed. Procure the device licence; users receive frontline user licences for anything not covered. The council baseline still applies to each user.'};
+  }
+
+  return null;
+}
+
+/* ---- Decision record ---- */
+function buildRecord(){
+  const rows=[];
+  if(S.mode==='person'){
+    rows.push(['Flow','Person allocation']);
+    if(S.blRef)rows.push(['Baseline reference',S.blRef]);
+    if(S.blBaseline)rows.push(['Org-wide baseline',S.blBaseline]);
+    if(S.allocRef)rows.push(['Allocation reference',S.allocRef]);
+    if(S.allocDate)rows.push(['Date',S.allocDate]);
+    if(S.allocRole)rows.push(['Role',S.allocRole]);
+    rows.push(['Account type',S.isuser==='yes'?'Named member of staff':(S.isuser==='no'?'Other, see account classes annex':'Not set')]);
+    const eligPass=S.elig.some(c=>c===true);
+    const eligMet=[];if(S.elig[0]===true)eligMet.push('small screen');if(S.elig[1]===true)eligMet.push('shared device');
+    rows.push(['Gate 1 (eligibility)',eligPass?('Passed ('+eligMet.join(', ')+')'):(S.elig.every(c=>c===false)?'Failed':'Not completed')]);
+    const suitDone=S.suit.every(c=>c!==null);
+    if(suitDone){
+      if(S.suit.every(c=>c===true))rows.push(['Gate 2 (suitability)','Passed']);
+      else{
+        const fails=[];S.suit.forEach((c,i)=>{if(c===false)fails.push('S'+(i+1))});
+        rows.push(['Gate 2 (suitability)','Failed on '+fails.join(', ')]);
+      }
+    }
+    if(S.selectedGroups.length){
+      const applied=S.selectedGroups.map(i=>S.specialGroups[i]).filter(g=>g&&g.name);
+      rows.push(['Special groups applied',applied.map(g=>g.name+(g.baseline?' — '+g.baseline:'')).join('\n')]);
+    } else if(S.specialGroups.filter(g=>g.name).length){
+      rows.push(['Special groups applied','None apply to this person']);
+    }
+    if(S.baselineMet){
+      rows.push(['Baseline decision',S.baselineMet==='confirm'?'Applied as pasted':'Overridden']);
+      if(S.baselineMet==='override' && S.overrideReason)rows.push(['Override reason',S.overrideReason]);
+    }
+
+    /* Specialists */
+    if(S.specialists.length){
+      const lines=S.specialists.map(id=>{
+        const it=findSpec(id);
+        return it ? '- '+it.name+' ('+it.term+')' : '- '+id;
+      });
+      rows.push(['Specialist capabilities',lines.join('\n')]);
+    }
+    if(S.specOther && S.specOther.trim()){
+      rows.push(['Other specialist capability',S.specOther.trim()]);
+    }
+    if((S.specialists.length || S.specOther.trim()) && S.specJustification.trim()){
+      rows.push(['Business justification',S.specJustification.trim()]);
+    }
+
+    if(S.perm){
+      let d=S.perm;
+      if(S.perm==='Temporary'&&S.endDate)d+=', ends '+S.endDate;
+      rows.push(['Duration',d]);
+      if(S.perm==='Temporary'&&S.endAction)rows.push(['End-date action',S.endAction]);
+    }
+    if(S.commercial){
+      rows.push(['Commercial check',S.commercial]);
+      if(S.commercial==='Overhead exception'&&S.excReason)rows.push(['Exception reason',S.excReason]);
+    }
+
+    /* Provisioning summary */
+    const provLines=[];
+    if(S.blBaseline)provLines.push('Baseline: '+S.blBaseline.split('\n')[0]);
+    if(S.selectedGroups.length){
+      const applied=S.selectedGroups.map(i=>S.specialGroups[i]).filter(g=>g&&g.name);
+      applied.forEach(g=>{provLines.push('Group ('+g.name+'): '+(g.baseline?g.baseline.split('\n')[0]:'(no stack entered)'))});
+    }
+    if(S.specialists.length){
+      S.specialists.forEach(id=>{const it=findSpec(id);if(it)provLines.push('Specialist: '+it.term)});
+    }
+    if(S.specOther && S.specOther.trim())provLines.push('Specialist (other): '+S.specOther.trim());
+    if(provLines.length)rows.push(['Licences to provision',provLines.join('\n')]);
+
+    const o=personOutcome();
+    if(o)rows.push(['Outcome',o.title]);
+    const needsApproval = S.commercial==='Overhead exception' || S.baselineMet==='override';
+    rows.push(['Approval route',needsApproval?'Exception, approval required':'Standard, IT may proceed']);
+  } else {
+    rows.push(['Flow','Shared device scenario']);
+    if(S.blRef)rows.push(['Baseline reference',S.blRef]);
+    if(S.blBaseline)rows.push(['Org-wide baseline',S.blBaseline]);
+    if(S.scenarioName)rows.push(['Scenario',S.scenarioName]);
+    if(S.scenarioLocation)rows.push(['Location',S.scenarioLocation]);
+    if(S.userCount||S.deviceCount)rows.push(['Ratio',(S.userCount||'?')+' users on '+(S.deviceCount||'?')+' devices']);
+    if(S.d1)rows.push(['Test 1 (agreement)',S.d1]);
+    const d2done=S.d2checks.every(c=>c!==null);
+    if(d2done)rows.push(['Test 2 (technical fit)',S.d2checks.every(c=>c===true)?'Passed':'Failed']);
+    if(S.d3){
+      rows.push(['Test 3 (commercial)',S.d3]);
+      if(S.d3note)rows.push(['Pricing notes',S.d3note]);
+    }
+    const d4done=S.d4checks.every(c=>c!==null);
+    if(d4done)rows.push(['Test 4 (constraints)',S.d4checks.every(c=>c===true)?'Passed':'Failed']);
+    const o=deviceOutcome();
+    if(o)rows.push(['Outcome',o.title]);
+  }
+  return rows;
+}
+
+function renderRecord(rows){
+  const r=$('rrecord');r.innerHTML='';
+  rows.forEach(([k,v])=>{
+    const row=document.createElement('div');row.className='rrecord-row';
+    const kEl=document.createElement('div');kEl.className='rrecord-k';kEl.textContent=k;
+    const vEl=document.createElement('div');vEl.className='rrecord-v';vEl.textContent=v;
+    row.appendChild(kEl);row.appendChild(vEl);
+    r.appendChild(row);
+  });
+  r.style.display=rows.length?'block':'none';
+}
+
+function resetResult(){
+  $('rtitle').textContent='Awaiting input';
+  $('rnote').textContent='Paste the baseline at the top, then work through the cards.';
+  $('rrecord').style.display='none';
+}
+
+$('calc').addEventListener('click',()=>{
+  const o = S.mode==='person' ? personOutcome() : deviceOutcome();
+  if(!o){
+    $('rtitle').textContent='Awaiting input';
+    $('rnote').textContent='Complete the required cards before generating the outcome.';
+    $('rrecord').style.display='none';
+    return;
+  }
+  $('rtitle').textContent=o.title;
+  $('rnote').textContent=o.note;
+  renderRecord(buildRecord());
+});
+
+$('copyRec').addEventListener('click',function(){
+  const rows=buildRecord();
+  if(!rows.length){this.textContent='Nothing to copy';setTimeout(()=>this.textContent='Copy decision record',1600);return}
+  const text=['LICENCE ALLOCATION DECISION RECORD',''].concat(rows.map(r=>r[0]+': '+r[1])).join('\n');
+  const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');this.textContent='Copied';setTimeout(()=>this.textContent='Copy decision record',1600)}catch(e){}
+  document.body.removeChild(ta);
+});
+
+function resetPerson(){
+  Object.assign(S,{
+    isuser:null,elig:[null,null],suit:[null,null,null,null,null,null],
+    selectedGroups:[],baselineMet:null,overrideReason:'',
+    specialists:[],specOther:'',specJustification:'',
+    perm:null,endDate:'',endAction:'',commercial:null,excReason:'',
+    allocRef:'',allocDate:'',allocRole:'',
+    scenarioName:'',scenarioLocation:'',userCount:'',deviceCount:'',
+    d1:null,d2checks:[null,null,null,null],d3:null,d3note:'',d4checks:[null,null,null,null]
+  });
+  document.querySelectorAll('[aria-pressed]').forEach(b=>{
+    if(b.id!=='modePerson'&&b.id!=='modeDevice')press(b,false);
+  });
+  ['allocRef','allocDate','allocRole','specOther','specJustification','endDate','endAction','excReason','overrideReason',
+   'scenarioName','scenarioLocation','userCount','deviceCount','d3note'].forEach(id=>$(id).value='');
+  $('tempFields').style.display='none';$('excFields').style.display='none';$('overrideFields').style.display='none';$('devBranch').style.display='none';
+  renderSpecList();
+  renderGroupChecks();
+  renderBaselineDisplay();
+  unlockPerson();unlockDevice();
+  resetResult();
+}
+$('reset').addEventListener('click',resetPerson);
+
+$('resetAll').addEventListener('click',()=>{
+  resetPerson();
+  S.blRef='';S.blBaseline='';S.specialGroups=[];
+  $('blRef').value='';$('blBaseline').value='';
+  renderGroupList();
+  renderBaselineDisplay();
+});
+
+renderSpecList();
+renderGroupList();
+renderBaselineDisplay();
+unlockPerson();unlockDevice();
+</script>
+</body>
+</html>

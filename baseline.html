@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Organisational Baseline Tool v1.3</title>
+<style>
+:root{
+  --ink:#172433;--muted:#4e5a66;--soft-muted:#687582;
+  --blue:#175a8b;--blue-dark:#0d4068;--blue-tint:#eaf4fb;
+  --green:#276749;--green-tint:#e6f1ea;
+  --amber:#8a5a00;
+  --warn-bg:#fdf3d5;--warn-br:#e2c97a;--warn-ink:#5c3d00;
+  --paper:#f7f8f7;--panel:#ffffff;--line:#c7cfd6;
+  --baseline-bg:#f0ece3;--baseline-br:#c9bfa0;--baseline-ink:#5a4b1f;
+  --group-bg:#eef2f8;--group-br:#b8c6d8;--group-ink:#1e3a5f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1040px;margin:auto;padding:0 24px}
+header{background:#fff;border-bottom:1px solid var(--line);padding:34px 0}
+h1{font-size:38px;line-height:1.1;margin:0 0 10px;color:var(--ink)}
+h2{font-size:24px;margin:36px 0 8px;color:var(--ink)}
+h3{font-size:18px;margin:0 0 6px;color:var(--ink)}
+.lede{color:var(--muted);max-width:72ch;margin:0}
+.tag{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--blue)}
+.status{display:inline-block;margin-top:16px;padding:9px 12px;background:var(--warn-bg);border:1px solid var(--warn-br);color:var(--warn-ink);border-radius:4px;font-size:14px}
+
+/* Context section */
+.context{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:20px;margin:16px 0}
+.context h3{margin:0 0 12px;font-size:16px}
+.context-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.context label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.context input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:4px;font:inherit;color:var(--ink);background:#fff}
+.context input:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
+
+/* Panel */
+.panel-title{background:var(--baseline-bg);border-left:4px solid var(--amber);padding:12px 16px;margin:20px 0 10px;border-radius:0 4px 4px 0}
+.panel-title h3{margin:0;color:var(--baseline-ink);font-size:15px;text-transform:uppercase;letter-spacing:.05em}
+
+/* Question card */
+.q{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:16px 18px;margin:8px 0;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:start}
+.q-body .q-text{font-weight:600;color:var(--ink);font-size:15.5px;margin:0;line-height:1.45}
+.q-body .q-eg{color:var(--muted);font-size:13.5px;margin:6px 0 0;line-height:1.5}
+.q-body .q-term{color:var(--soft-muted);font-size:12px;margin:8px 0 0;font-style:italic}
+.q-body .q-term strong{font-style:normal;color:var(--soft-muted);text-transform:uppercase;letter-spacing:.03em;font-weight:700;font-size:11px}
+.q.answered-yes{border-left:4px solid var(--green);padding-left:14px}
+.q.answered-no{border-left:4px solid var(--amber);padding-left:14px;opacity:.85}
+
+.yn{display:flex;gap:6px;flex-shrink:0;align-self:center}
+.yn button{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;border:1px solid var(--line);background:#fff;color:var(--muted);padding:8px 16px;border-radius:4px;cursor:pointer;font-family:inherit;min-width:62px}
+.yn button:hover{border-color:var(--soft-muted);color:var(--ink)}
+.yn button:focus{outline:2px solid var(--blue);outline-offset:1px}
+.yn button[aria-pressed="true"][data-v="y"]{background:var(--green-tint);border-color:var(--green);color:var(--green)}
+.yn button[aria-pressed="true"][data-v="n"]{background:var(--warn-bg);border-color:var(--amber);color:var(--warn-ink)}
+
+/* Other input */
+.other-input{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:16px 18px;margin:12px 0}
+.other-input label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.other-input p{color:var(--muted);font-size:13.5px;margin:0 0 8px}
+.other-input textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:4px;font:inherit;color:var(--ink);background:#fff;resize:vertical}
+.other-input textarea:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
+
+/* Purview warning */
+.purview-warning{background:var(--warn-bg);border:1px solid var(--warn-br);border-left:4px solid var(--amber);border-radius:0 4px 4px 0;padding:12px 14px;margin:16px 0;font-size:14px;color:var(--warn-ink);line-height:1.5}
+.purview-warning strong{display:block;margin-bottom:4px}
+
+/* Groups */
+.group-wrap{border:1px solid var(--group-br);border-radius:5px;margin:14px 0;background:#fff;overflow:hidden}
+.group-head{display:flex;gap:12px;align-items:center;padding:14px 18px;background:var(--group-bg);border-bottom:1px solid var(--group-br)}
+.group-head h3{margin:0;color:var(--group-ink);font-size:13px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;font-weight:700}
+.group-head input{flex:1;padding:10px 12px;border:1px solid var(--group-br);border-radius:4px;font:inherit;color:var(--ink);background:#fff}
+.group-head input:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
+.group-head .remove-grp{background:#fff;color:var(--muted);border:1px solid var(--group-br);border-radius:4px;padding:10px 14px;font:inherit;cursor:pointer;flex-shrink:0}
+.group-head .remove-grp:hover{color:var(--warn-ink);border-color:var(--amber)}
+.group-body{padding:12px 16px 16px;background:#fcfcfd}
+.group-body .group-intro{color:var(--group-ink);font-size:14px;margin:0 0 10px;line-height:1.5}
+.group-body .q{border-color:var(--group-br)}
+.group-body .nothing{color:var(--group-ink);font-style:italic;margin:0;font-size:14px;padding:12px 0}
+
+.add-group{background:#fff;color:var(--group-ink);border:1px dashed var(--group-br);border-radius:4px;padding:14px 18px;font:inherit;font-weight:600;cursor:pointer;margin-top:4px;width:100%}
+.add-group:hover{border-style:solid;border-color:var(--blue)}
+
+/* Output section */
+.output{background:var(--ink);color:#fff;border-radius:5px;padding:24px;margin:24px 0}
+.output h2{color:#fff;margin:0 0 6px}
+.output .otag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#9ec8e3}
+.output .intro{color:#c9d2db;margin:0 0 16px;font-size:14.5px}
+.output-section{background:#2a3744;border-radius:5px;padding:16px 18px;margin:12px 0}
+.output-section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:12px;flex-wrap:wrap}
+.output-section-label{font-size:12px;font-weight:700;color:#9ec8e3;text-transform:uppercase;letter-spacing:.04em}
+.output-section-sub{font-size:12px;color:#8398ac;font-style:italic}
+.output-field{background:#172433;border:1px solid #3a4858;border-radius:4px;padding:12px 14px;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13.5px;line-height:1.6;color:#e6edf5;white-space:pre-wrap;max-height:260px;overflow-y:auto}
+.output-field.empty{color:#687582;font-style:italic;font-family:inherit}
+.output-copy{background:#9ec8e3;color:var(--ink);border:0;border-radius:4px;padding:6px 14px;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+.output-copy:hover{background:#b8d6e8}
+.output-copy.copied{background:#8fd39d;color:var(--ink)}
+
+.output-group{border-top:1px solid #3a4858;padding-top:14px;margin-top:14px}
+.output-group-name{font-size:13px;font-weight:700;color:#9ec8e3;margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em}
+
+/* Narrative */
+.narrative{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:20px;margin:16px 0}
+.narrative-text{background:#f9f7f1;border:1px solid var(--baseline-br);border-radius:4px;padding:14px 16px;font-size:14px;line-height:1.65;color:var(--ink);white-space:pre-wrap;max-height:400px;overflow-y:auto}
+.narrative .output-copy{background:var(--baseline-ink);color:#fff;margin-top:12px}
+.narrative .output-copy:hover{background:#3d3012}
+
+/* Actions */
+.actions{display:flex;gap:10px;margin:24px 0 40px;padding:16px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:12px 16px;font:inherit;cursor:pointer}
+button.secondary:hover{border-color:var(--blue);color:var(--blue-dark)}
+
+/* Progress chip */
+.progress{display:inline-block;margin-left:12px;padding:3px 10px;background:var(--blue-tint);color:var(--blue-dark);border-radius:12px;font-size:12px;font-weight:600}
+
+@media(max-width:820px){
+  .context-grid{grid-template-columns:1fr}
+  .q{grid-template-columns:1fr;gap:10px}
+  .yn{align-self:start}
+  h1{font-size:30px}
+  .group-head{flex-wrap:wrap}
+  .group-head input{order:3;width:100%}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="tag">M365 Licence Audit and Allocation Framework</div>
+    <h1>Organisational Baseline Tool</h1>
+    <p class="lede">A guided three-person conversation. The CISO or security lead, the Information Governance lead, and the head of IT answer each question Yes or No for the council. The tool translates your answers into the licence stack that goes to the allocation tool.</p>
+    <div class="status"><strong>Prototype for comment (v1.3).</strong> One session, three people. The output is the baseline reference used by every allocation and audit for the year ahead.</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section class="context">
+  <h3>Session context</h3>
+  <div class="context-grid">
+    <div>
+      <label for="ctxCouncil">Council</label>
+      <input type="text" id="ctxCouncil" placeholder="For example: East Renfrewshire Council">
+    </div>
+    <div>
+      <label for="ctxRef">Baseline reference / version</label>
+      <input type="text" id="ctxRef" placeholder="For example: Baseline v2, March 2026">
+    </div>
+    <div>
+      <label for="ctxAuthor">Signed off by</label>
+      <input type="text" id="ctxAuthor" placeholder="For example: J Smith (CISO), K Brown (Head of IT), M Jones (IG)">
+    </div>
+    <div>
+      <label for="ctxDate">Date</label>
+      <input type="date" id="ctxDate">
+    </div>
+  </div>
+</section>
+
+<h2>Council-wide requirements <span class="progress" id="orgProgress">0 of 20 answered</span></h2>
+<p class="lede">For every question, decide whether this capability should apply to every licensed user at your council. Answer in the context of what the council wants to enforce, not what any specific team or system currently does.</p>
+
+<div id="orgQuestions"></div>
+
+<div class="other-input">
+  <label for="orgOther">Anything else for every user</label>
+  <p>Requirements for all users that the questions above didn't cover. The allocation tool will pass these on to the service desk as manual notes.</p>
+  <textarea id="orgOther" rows="3" placeholder="For example: all mailboxes must be journalled to the records system."></textarea>
+</div>
+
+<div class="purview-warning"><strong>Reminder on compliance tools</strong>If your Yes answers include sensitivity labels, DLP, records management, eDiscovery or insider risk (any of the "information protection" or "records and investigation" questions), every user whose content is covered needs the licence that delivers it. Not just the users of the tools themselves. The IG lead should think about scope.</div>
+
+<h2>Special groups</h2>
+<p class="lede">Groups that need capabilities beyond what everyone gets. Typical examples: privileged administrators, the Information Governance team, finance staff dealing with sensitive data, members of a legal team. Add one per group. For each, you'll only see the questions you answered No above, because everything you said Yes to already applies to them.</p>
+
+<div id="groupList"></div>
+<button class="add-group" id="addGroup" type="button">+ Add a special group</button>
+
+<h2>Output for the allocation tool</h2>
+
+<section class="output">
+  <span class="otag">Copy into the allocation tool</span>
+  <h2 style="margin-top:4px">Pasteable baseline</h2>
+  <p class="intro">Each field has its own copy button. The allocation tool has the same field names at the top of its baseline section.</p>
+
+  <div class="output-section">
+    <div class="output-section-head">
+      <span class="output-section-label">Reference</span>
+      <button class="output-copy" data-copy="ref">Copy</button>
+    </div>
+    <div class="output-field" id="outRef"></div>
+  </div>
+
+  <div class="output-section">
+    <div class="output-section-head">
+      <span class="output-section-label">Org-wide baseline</span>
+      <button class="output-copy" data-copy="org">Copy</button>
+    </div>
+    <div class="output-field" id="outOrg"></div>
+  </div>
+
+  <div id="outGroups"></div>
+</section>
+
+<h2>Narrative baseline statement</h2>
+<p class="lede">The same baseline in plain English, for governance papers and sign-off documents. Not pasted into the allocation tool.</p>
+
+<section class="narrative">
+  <div class="narrative-text" id="narrativeText"></div>
+  <button class="output-copy" data-copy="narrative">Copy narrative statement</button>
+</section>
+
+<div class="actions">
+  <button class="secondary" id="reset">Reset everything</button>
+</div>
+
+</main>
+
+<script>
+/* ---- Questions ---- */
+/* Each question: plain-language text, short example, the Microsoft term (shown small),
+   and the licence category the capability requires (hidden from users). */
+const QUESTIONS = [
+  { panel: 'Identity, access and sign-in', items: [
+    { id:'mfa', requires:'f3',
+      q:'Should all staff be required to prove their identity in more than one way when signing in?',
+      eg:'For example, password plus a code from an authenticator app, or a biometric check.',
+      term:'Multi-factor authentication (MFA)' },
+    { id:'ca', requires:'f3',
+      q:'Should sign-ins be blocked or challenged based on context such as location, device or risk level?',
+      eg:'For example, block sign-ins from countries where no staff work, or require MFA when accessing from an unmanaged device.',
+      term:'Conditional Access' },
+    { id:'sspr', requires:'f3',
+      q:'Should staff be able to reset their own passwords without calling the service desk?',
+      eg:'Reduces service desk volume and lets staff recover out of hours.',
+      term:'Self-service password reset' },
+    { id:'idp', requires:'sec',
+      q:'Should sign-ins be scored for risk, with suspicious attempts automatically blocked or challenged, even when the password is correct?',
+      eg:'Spots compromised credentials, impossible travel, unusual sign-in patterns.',
+      term:'Entra ID Protection (risk-based)' },
+    { id:'pim', requires:'sec',
+      q:'Should administrative access to Microsoft 365 be granted only when needed, for a limited time, and with approval?',
+      eg:'Avoids standing admin privileges sitting on accounts; admins request elevation for a specific task.',
+      term:'Privileged Identity Management (PIM)' },
+  ]},
+  { panel: 'Threats on devices and in email', items: [
+    { id:'mde1', requires:'f3',
+      q:'Should council-issued devices have Microsoft\'s baseline protection against malware and malicious software?',
+      eg:'Answer No if the council uses a different security product on all devices.',
+      term:'Defender for Endpoint Plan 1' },
+    { id:'mde2', requires:'sec',
+      q:'Should the council have advanced protection against sophisticated threats, with automated investigation across devices and email?',
+      eg:'Goes beyond antivirus: spots behaviour-based threats, auto-contains them, hunts for lateral movement. Covers both devices and email.',
+      term:'Defender for Endpoint Plan 2 + Defender for Office 365 Plan 2' },
+    { id:'mdi', requires:'sec',
+      q:'Should the council monitor on-premises Active Directory for identity-based attacks?',
+      eg:'Watches AD authentication patterns for signs of an attacker moving laterally through the network. Answer No if the council has no on-premises AD, or uses a separate tool for this.',
+      term:'Defender for Identity' },
+  ]},
+  { panel: 'Sensitive information', items: [
+    { id:'labels_manual', requires:'f3',
+      q:'Should staff be able to label documents and emails by sensitivity, so handling rules travel with the content?',
+      eg:'For example: Official, Official Sensitive, Confidential. Staff choose the label.',
+      term:'Sensitivity labels, manual application' },
+    { id:'labels_auto', requires:'comp',
+      q:'Should labels be applied automatically based on content, without staff having to choose?',
+      eg:'For example: an email containing bank account details is automatically labelled Confidential.',
+      term:'Sensitivity labels, automatic application' },
+    { id:'dlp_core', requires:'f3',
+      q:'Should the council block or alert when sensitive information is being shared externally through email or Microsoft 365 files?',
+      eg:'For example: an email containing many NI numbers to an external address is blocked or flagged.',
+      term:'Data loss prevention (Exchange, SharePoint, OneDrive, Teams)' },
+    { id:'dlp_endpoint', requires:'comp',
+      q:'Should the council also control what sensitive content can be copied to USB sticks, printed, or shared with other apps on the device itself?',
+      eg:'The previous question stops external sharing through M365. This question extends that protection to what happens on the device.',
+      term:'Endpoint DLP' },
+  ]},
+  { panel: 'Records, audit and investigation', items: [
+    { id:'retention_basic', requires:'f3',
+      q:'Should the council apply standard retention and deletion rules to M365 content?',
+      eg:'For example: keep emails for 7 years then delete; keep Teams chats for 2 years.',
+      term:'Basic retention policies' },
+    { id:'audit_adv', requires:'comp',
+      q:'Should the council keep audit logs of user activity for longer than the standard period, to support investigations, FOI or legal cases?',
+      eg:'Standard retention is around 6 months. Extended holds logs for a year or more with richer events.',
+      term:'Advanced Audit' },
+    { id:'records', requires:'comp',
+      q:'Should the council formally declare specific items as records, with event-based retention and no further changes allowed?',
+      eg:'For example: a contract file that must be kept unchanged until 10 years after the contract ends.',
+      term:'Records Management' },
+    { id:'ediscovery', requires:'comp',
+      q:'Should the council have advanced tools for legal, HR and regulatory investigations across all M365 content?',
+      eg:'Legal hold, workflow for case teams, machine-learning assisted review. Beyond basic search.',
+      term:'Advanced eDiscovery (Premium)' },
+    { id:'insider', requires:'comp',
+      q:'Should the council be able to detect risky or policy-violating behaviour by staff, such as bulk downloads before a resignation or inappropriate sharing of sensitive data?',
+      eg:'Monitors patterns, not individuals. Generates alerts for investigation under strict governance.',
+      term:'Insider Risk Management, Communication Compliance' },
+  ]},
+  { panel: 'Devices and collaboration', items: [
+    { id:'mdm', requires:'f3',
+      q:'Should the council centrally manage and configure the devices it issues to staff?',
+      eg:'Covers deployment, policy enforcement, software installation, remote wipe if lost.',
+      term:'Intune Plan 1' },
+    { id:'byod', requires:'f3',
+      q:'Should staff be able to access council systems from their own personal devices, with the council enforcing security conditions?',
+      eg:'Answer No if the council\'s policy is that only council-issued devices access M365.',
+      term:'BYOD with Conditional Access' },
+    { id:'guest', requires:'f3',
+      q:'Should external people (contractors, partner organisations, other councils) be able to collaborate on documents and sites, with the council managing their access?',
+      eg:'Standard external collaboration. Advanced cross-tenant controls are separate.',
+      term:'External and guest collaboration' },
+  ]}
+];
+
+const TOTAL_QUESTIONS = QUESTIONS.reduce((n,p)=>n+p.items.length,0);
+
+const S = {
+  ctxCouncil:'', ctxRef:'', ctxAuthor:'', ctxDate:'',
+  orgAnswers:{}, orgOther:'',  // orgAnswers[id] = 'yes' | 'no' | undefined
+  groups:[]  // each: {name, answers:{}, other}
+};
+
+function $(i){return document.getElementById(i)}
+
+/* ---- Render org-wide questions ---- */
+function renderOrgQuestions(){
+  const c=$('orgQuestions');c.innerHTML='';
+  QUESTIONS.forEach(panel=>{
+    const title=document.createElement('div');title.className='panel-title';
+    title.innerHTML='<h3>'+panel.panel+'</h3>';
+    c.appendChild(title);
+    panel.items.forEach(it=>{
+      const ans=S.orgAnswers[it.id];
+      const card=document.createElement('article');
+      card.className='q'+(ans==='yes'?' answered-yes':(ans==='no'?' answered-no':''));
+      card.innerHTML=
+        '<div class="q-body">'+
+          '<p class="q-text">'+it.q+'</p>'+
+          '<p class="q-eg">'+it.eg+'</p>'+
+          '<p class="q-term"><strong>Microsoft term:</strong> '+it.term+'</p>'+
+        '</div>'+
+        '<div class="yn" data-scope="org" data-id="'+it.id+'">'+
+          '<button data-v="y" aria-pressed="'+(ans==='yes')+'">Yes</button>'+
+          '<button data-v="n" aria-pressed="'+(ans==='no')+'">No</button>'+
+        '</div>';
+      c.appendChild(card);
+    });
+  });
+  updateProgress();
+}
+
+function updateProgress(){
+  const answered=Object.keys(S.orgAnswers).filter(k=>S.orgAnswers[k]==='yes'||S.orgAnswers[k]==='no').length;
+  $('orgProgress').textContent=answered+' of '+TOTAL_QUESTIONS+' answered';
+}
+
+/* ---- Render groups ---- */
+function renderGroupList(){
+  const list=$('groupList');list.innerHTML='';
+  S.groups.forEach((g,gi)=>{
+    const wrap=document.createElement('div');wrap.className='group-wrap';
+
+    const head=document.createElement('div');head.className='group-head';
+    head.innerHTML='<h3>Group '+(gi+1)+'</h3>'+
+      '<input type="text" placeholder="Group name (for example: Privileged admins, IG team, Finance)" data-gi="'+gi+'" data-f="name" value="'+g.name.replace(/"/g,'&quot;')+'">'+
+      '<button class="remove-grp" data-remove="'+gi+'" type="button">Remove group</button>';
+    wrap.appendChild(head);
+
+    const body=document.createElement('div');body.className='group-body';
+    body.innerHTML='<p class="group-intro">Only the questions you answered No for the whole council are shown here. Answer Yes for anything this group needs on top of the council-wide baseline.</p>';
+
+    let anyShown=false;
+    QUESTIONS.forEach(panel=>{
+      const relevant=panel.items.filter(it=>S.orgAnswers[it.id]!=='yes');
+      if(!relevant.length)return;
+      anyShown=true;
+      const title=document.createElement('div');title.className='panel-title';
+      title.innerHTML='<h3>'+panel.panel+'</h3>';
+      body.appendChild(title);
+      relevant.forEach(it=>{
+        const ans=g.answers[it.id];
+        const card=document.createElement('article');
+        card.className='q'+(ans==='yes'?' answered-yes':(ans==='no'?' answered-no':''));
+        card.innerHTML=
+          '<div class="q-body">'+
+            '<p class="q-text">'+it.q+'</p>'+
+            '<p class="q-eg">'+it.eg+'</p>'+
+            '<p class="q-term"><strong>Microsoft term:</strong> '+it.term+'</p>'+
+          '</div>'+
+          '<div class="yn" data-scope="grp" data-gi="'+gi+'" data-id="'+it.id+'">'+
+            '<button data-v="y" aria-pressed="'+(ans==='yes')+'">Yes</button>'+
+            '<button data-v="n" aria-pressed="'+(ans==='no')+'">No</button>'+
+          '</div>';
+        body.appendChild(card);
+      });
+    });
+    if(!anyShown){
+      const n=document.createElement('p');n.className='nothing';
+      n.textContent='Everyone in the council already gets every capability in the list. This group has nothing extra to add; delete it if there is no reason to keep it.';
+      body.appendChild(n);
+    }
+
+    const other=document.createElement('div');other.className='other-input';
+    other.style.margin='12px 0 0';
+    other.innerHTML='<label for="groupOther_'+gi+'">Anything else for this group</label>'+
+      '<textarea id="groupOther_'+gi+'" data-gi="'+gi+'" data-f="other" rows="2" placeholder="Group-specific requirements not covered above.">'+g.other.replace(/</g,'&lt;')+'</textarea>';
+    body.appendChild(other);
+
+    wrap.appendChild(body);
+    list.appendChild(wrap);
+  });
+}
+
+/* ---- Event wiring ---- */
+$('orgQuestions').addEventListener('click',e=>{
+  const btn=e.target.closest('button[data-v]');
+  if(!btn)return;
+  const yn=btn.parentNode;
+  if(yn.dataset.scope!=='org')return;
+  const id=yn.dataset.id;
+  S.orgAnswers[id]=btn.dataset.v==='y'?'yes':'no';
+  renderOrgQuestions();
+  renderGroupList();  // group lists depend on org answers
+  renderOutput();
+});
+
+$('groupList').addEventListener('click',e=>{
+  const btn=e.target.closest('button[data-v]');
+  if(btn){
+    const yn=btn.parentNode;
+    if(yn.dataset.scope==='grp'){
+      const gi=+yn.dataset.gi, id=yn.dataset.id;
+      S.groups[gi].answers[id]=btn.dataset.v==='y'?'yes':'no';
+      renderGroupList();
+      renderOutput();
+      return;
+    }
+  }
+  const t=e.target;
+  if(t.dataset.remove!==undefined){
+    S.groups.splice(+t.dataset.remove,1);
+    renderGroupList();
+    renderOutput();
+  }
+});
+
+$('groupList').addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.f && t.dataset.gi!==undefined){
+    const gi=+t.dataset.gi;
+    S.groups[gi][t.dataset.f]=t.value;
+    renderOutput();
+  }
+});
+
+$('addGroup').addEventListener('click',()=>{
+  S.groups.push({name:'',answers:{},other:''});
+  renderGroupList();
+  renderOutput();
+});
+
+['ctxCouncil','ctxRef','ctxAuthor','ctxDate','orgOther'].forEach(id=>{
+  $(id).addEventListener('input',function(){S[id]=this.value;renderOutput()});
+});
+
+/* ---- Compute helpers ---- */
+function yesIds(answers){
+  return Object.keys(answers).filter(k=>answers[k]==='yes');
+}
+
+function computeStacks(ids){
+  const addons=new Set();
+  const byCat={f3:[],sec:[],comp:[]};
+  ids.forEach(id=>{
+    for(const panel of QUESTIONS){
+      const it=panel.items.find(x=>x.id===id);
+      if(it){
+        byCat[it.requires].push(it);
+        if(it.requires==='sec'||it.requires==='comp')addons.add(it.requires);
+        break;
+      }
+    }
+  });
+  const hasSec=addons.has('sec'), hasComp=addons.has('comp');
+  const frontline='F3'+(hasSec?' + F5 Security Add-on':'')+(hasComp?' + F5 Compliance Add-on':'');
+  const desktop='E3'+(hasSec?' + E5 Security Add-on':'')+(hasComp?' + E5 Compliance Add-on':'');
+  return {frontline, desktop, byCat, bothAddons: hasSec && hasComp};
+}
+
+function formatBaselineText(ids, otherText){
+  const r=computeStacks(ids);
+  const lines=[];
+  lines.push('Frontline route: '+r.frontline);
+  lines.push('Desktop route: '+r.desktop);
+  if(r.bothAddons)lines.push('(E5 bundle may be cheaper than E3 + both add-ons; check commercial comparison.)');
+  lines.push('');
+  lines.push('Capabilities covered:');
+  if(r.byCat.f3.length){
+    r.byCat.f3.forEach(it=>lines.push('  - '+it.term+' (in base licence)'));
+  }
+  if(r.byCat.sec.length){
+    r.byCat.sec.forEach(it=>lines.push('  - '+it.term+' (via Security add-on)'));
+  }
+  if(r.byCat.comp.length){
+    r.byCat.comp.forEach(it=>lines.push('  - '+it.term+' (via Compliance add-on)'));
+  }
+  if(otherText && otherText.trim()){
+    lines.push('');
+    lines.push('Other requirements (not auto-mapped):');
+    otherText.trim().split('\n').forEach(l=>lines.push('  '+l));
+  }
+  return lines.join('\n');
+}
+
+function formatGroupBaselineText(group){
+  const orgIds=yesIds(S.orgAnswers);
+  const grpIds=yesIds(group.answers);
+  const combinedIds = Array.from(new Set(orgIds.concat(grpIds)));
+  const r=computeStacks(combinedIds);
+  const additions=computeStacks(grpIds);
+
+  const lines=[];
+  lines.push('Full stack for this group (council-wide + additional):');
+  lines.push('  Frontline route: '+r.frontline);
+  lines.push('  Desktop route: '+r.desktop);
+  if(r.bothAddons)lines.push('  (E5 bundle may be cheaper than E3 + both add-ons; check commercial comparison.)');
+
+  if(grpIds.length || (group.other && group.other.trim())){
+    lines.push('');
+    lines.push('Additional beyond council-wide baseline:');
+    additions.byCat.sec.forEach(it=>lines.push('  - '+it.term+' (via Security add-on)'));
+    additions.byCat.comp.forEach(it=>lines.push('  - '+it.term+' (via Compliance add-on)'));
+    additions.byCat.f3.forEach(it=>lines.push('  - '+it.term));
+    if(group.other && group.other.trim()){
+      lines.push('');
+      lines.push('Other requirements for this group:');
+      group.other.trim().split('\n').forEach(l=>lines.push('  '+l));
+    }
+  } else {
+    lines.push('');
+    lines.push('No additional requirements beyond the council-wide baseline.');
+  }
+  return lines.join('\n');
+}
+
+/* ---- Render output ---- */
+function renderOutput(){
+  const refParts=[];
+  if(S.ctxCouncil)refParts.push(S.ctxCouncil);
+  if(S.ctxRef)refParts.push(S.ctxRef);
+  if(S.ctxDate)refParts.push(S.ctxDate);
+  if(S.ctxAuthor)refParts.push('signed off by '+S.ctxAuthor);
+  const refText=refParts.join(' | ');
+  $('outRef').textContent=refText || '(No context entered yet; fill in the session context section above.)';
+  $('outRef').classList.toggle('empty',!refText);
+
+  const orgIds=yesIds(S.orgAnswers);
+  const orgText = orgIds.length || S.orgOther.trim()
+    ? formatBaselineText(orgIds, S.orgOther)
+    : '';
+  $('outOrg').textContent = orgText || '(No council-wide capabilities answered Yes yet.)';
+  $('outOrg').classList.toggle('empty',!orgText);
+
+  const groupsEl=$('outGroups');groupsEl.innerHTML='';
+  const namedGroups=S.groups.filter(g=>g.name);
+  if(namedGroups.length){
+    const header=document.createElement('div');header.className='output-section';
+    header.style.borderBottom='1px solid #3a4858';
+    header.innerHTML='<div class="output-section-head"><span class="output-section-label">Special group baselines</span><span class="output-section-sub">Copy each group\'s name and baseline into the allocation tool\'s "Add a special group" section.</span></div>';
+    groupsEl.appendChild(header);
+  }
+  S.groups.forEach((g,gi)=>{
+    if(!g.name && !yesIds(g.answers).length && !g.other.trim())return;
+    const groupEl=document.createElement('div');groupEl.className='output-group';
+    const name=g.name||'(unnamed group '+(gi+1)+')';
+    groupEl.innerHTML=
+      '<div class="output-group-name">Group: '+name+'</div>'+
+      '<div class="output-section" style="margin-top:8px"><div class="output-section-head"><span class="output-section-label">Group name</span><button class="output-copy" data-copy="grp-name-'+gi+'">Copy</button></div><div class="output-field">'+name+'</div></div>'+
+      '<div class="output-section"><div class="output-section-head"><span class="output-section-label">Baseline for this group</span><button class="output-copy" data-copy="grp-baseline-'+gi+'">Copy</button></div><div class="output-field">'+formatGroupBaselineText(g)+'</div></div>';
+    groupsEl.appendChild(groupEl);
+  });
+
+  renderNarrative();
+}
+
+/* ---- Narrative ---- */
+function renderNarrative(){
+  const lines=[];
+  const council=S.ctxCouncil||'The council';
+  const refBit=S.ctxRef?(' ('+S.ctxRef+')'):'';
+  const dateBit=S.ctxDate?(', dated '+S.ctxDate):'';
+  lines.push(council+' M365 Organisational Baseline'+refBit+dateBit);
+  if(S.ctxAuthor)lines.push('Signed off by: '+S.ctxAuthor);
+  lines.push('');
+
+  const orgIds=yesIds(S.orgAnswers);
+  if(!orgIds.length && !S.orgOther.trim()){
+    lines.push('No council-wide baseline has been set yet. Work through the questions above.');
+    $('narrativeText').textContent=lines.join('\n');
+    return;
+  }
+
+  const r=computeStacks(orgIds);
+  lines.push('Council-wide baseline');
+  lines.push('=====================');
+  lines.push('');
+  lines.push('Every licensed user at '+council+' must have a licence that delivers the capabilities below.');
+  lines.push('');
+  lines.push('For users on the frontline route (eligible for Microsoft Frontline Worker licensing): '+r.frontline);
+  lines.push('For users on the desktop route (not Frontline Worker eligible, or F3 technically unsuitable): '+r.desktop);
+  if(r.bothAddons)lines.push('Where both Security and Compliance add-ons are needed, Microsoft 365 E5 may be cheaper than E3 plus both add-ons. Check the commercial comparison template using actual council pricing.');
+  lines.push('');
+
+  lines.push('Capabilities included in the base licence (F3 on the frontline route, E3 on the desktop route):');
+  if(r.byCat.f3.length){r.byCat.f3.forEach(it=>lines.push('  - '+it.term))}else lines.push('  (none selected)');
+  if(r.byCat.sec.length){
+    lines.push('');
+    lines.push('Capabilities delivered by the Security add-on (F5 Security on frontline, E5 Security on desktop):');
+    r.byCat.sec.forEach(it=>lines.push('  - '+it.term));
+  }
+  if(r.byCat.comp.length){
+    lines.push('');
+    lines.push('Capabilities delivered by the Compliance add-on (F5 Compliance on frontline, E5 Compliance on desktop):');
+    r.byCat.comp.forEach(it=>lines.push('  - '+it.term));
+  }
+  if(S.orgOther && S.orgOther.trim()){
+    lines.push('');
+    lines.push('Other council-wide requirements (not auto-mapped; the service desk is asked to confirm these at allocation time):');
+    S.orgOther.trim().split('\n').forEach(l=>lines.push('  '+l));
+  }
+
+  const namedGroups=S.groups.filter(g=>g.name);
+  if(namedGroups.length){
+    lines.push('');
+    lines.push('Special groups');
+    lines.push('==============');
+    lines.push('');
+    lines.push('These groups need capabilities beyond the council-wide baseline. People in these groups get the council-wide baseline AND the group additions; the allocation tool applies them together.');
+    namedGroups.forEach(g=>{
+      const combinedIds=Array.from(new Set(orgIds.concat(yesIds(g.answers))));
+      const gr=computeStacks(combinedIds);
+      const additions=computeStacks(yesIds(g.answers));
+      lines.push('');
+      lines.push(g.name);
+      lines.push('-'.repeat(Math.max(3,g.name.length)));
+      lines.push('Frontline stack: '+gr.frontline);
+      lines.push('Desktop stack: '+gr.desktop);
+      if(yesIds(g.answers).length){
+        lines.push('Additional capabilities needed for this group:');
+        additions.byCat.sec.forEach(it=>lines.push('  - '+it.term+' (via Security add-on)'));
+        additions.byCat.comp.forEach(it=>lines.push('  - '+it.term+' (via Compliance add-on)'));
+        additions.byCat.f3.forEach(it=>lines.push('  - '+it.term));
+      }
+      if(g.other && g.other.trim()){
+        lines.push('Other requirements for this group:');
+        g.other.trim().split('\n').forEach(l=>lines.push('  '+l));
+      }
+    });
+  }
+
+  lines.push('');
+  lines.push('How this is used');
+  lines.push('================');
+  lines.push('');
+  lines.push('For every licence allocation, the service desk starts from the council-wide baseline. If the person being allocated belongs to one of the special groups, that group\'s baseline is applied on top. The person\'s route (frontline or desktop) is determined by the F3 eligibility and suitability gates in the allocation tool, and the matching variant of the baseline is used. Role-specific requirements beyond the baseline are then added, and the commercial check decides whether the computed stack or a bundled higher tier is cheaper at actual council pricing.');
+
+  $('narrativeText').textContent=lines.join('\n');
+}
+
+/* ---- Copy buttons ---- */
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('.output-copy');
+  if(!btn)return;
+  const target=btn.dataset.copy;
+  let text='';
+  if(target==='ref')text=$('outRef').textContent;
+  else if(target==='org')text=$('outOrg').textContent;
+  else if(target==='narrative')text=$('narrativeText').textContent;
+  else if(target.indexOf('grp-name-')===0){
+    const gi=+target.replace('grp-name-','');
+    text=S.groups[gi].name||('Group '+(gi+1));
+  } else if(target.indexOf('grp-baseline-')===0){
+    const gi=+target.replace('grp-baseline-','');
+    text=formatGroupBaselineText(S.groups[gi]);
+  }
+  const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');
+    const orig=btn.textContent;btn.textContent='Copied';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent=orig;btn.classList.remove('copied')},1400);
+  }catch(err){}
+  document.body.removeChild(ta);
+});
+
+/* ---- Reset ---- */
+$('reset').addEventListener('click',()=>{
+  Object.assign(S,{
+    ctxCouncil:'',ctxRef:'',ctxAuthor:'',ctxDate:'',
+    orgAnswers:{},orgOther:'',groups:[]
+  });
+  ['ctxCouncil','ctxRef','ctxAuthor','ctxDate','orgOther'].forEach(id=>$(id).value='');
+  renderOrgQuestions();
+  renderGroupList();
+  renderOutput();
+});
+
+/* ---- Init ---- */
+renderOrgQuestions();
+renderGroupList();
+renderOutput();
+</script>
+</body>
+</html>

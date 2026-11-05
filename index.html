@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>M365 Licence Framework Prototypes</title>
+  <style>
+    :root {
+      --background: #f5f7f8;
+      --surface: #ffffff;
+      --text: #1f2a30;
+      --muted: #52626b;
+      --accent: #005a70;
+      --accent-dark: #00414f;
+      --border: #d5dde1;
+      --notice: #fff4d6;
+      --notice-border: #d9a300;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 1.0625rem;
+      line-height: 1.6;
+    }
+
+    header {
+      background: var(--accent);
+      color: #ffffff;
+      padding: 2.5rem 1rem;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      margin: 0 0 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      line-height: 1.2;
+    }
+
+    main {
+      padding: 2rem 1rem 3rem;
+    }
+
+    .notice {
+      margin-bottom: 2rem;
+      padding: 1rem 1.25rem;
+      background: var(--notice);
+      border-left: 5px solid var(--notice-border);
+    }
+
+    .notice p { margin: 0; }
+
+    h2 {
+      margin: 2rem 0 1rem;
+      font-size: 1.35rem;
+    }
+
+    .card {
+      margin-bottom: 1rem;
+      padding: 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .card h3 {
+      margin: 0 0 0.4rem;
+      font-size: 1.15rem;
+    }
+
+    .card p {
+      margin: 0 0 1rem;
+      color: var(--muted);
+    }
+
+    .button {
+      display: inline-block;
+      padding: 0.6rem 1rem;
+      background: var(--accent);
+      color: #ffffff;
+      border-radius: 4px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .button:hover { background: var(--accent-dark); }
+
+    .button:focus-visible {
+      outline: 3px solid var(--notice-border);
+      outline-offset: 2px;
+    }
+
+    footer {
+      padding: 1.25rem 1rem 2rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <p class="eyebrow">LocalGov M365 Foundations Programme</p>
+      <h1>Licence Audit and Allocation Framework prototypes</h1>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="notice">
+        <p><strong>Prototypes for review.</strong> These tools are still in development and are not final guidance.</p>
+      </div>
+
+      <p>These prototypes show how the framework could help councils make consistent, defensible Microsoft 365 licensing decisions. Please try both and tell us what works, what is unclear and what would need to change for your council.</p>
+
+      <h2>Open a prototype</h2>
+
+      <section class="card">
+        <h3>Organisational baseline tool</h3>
+        <p>Work through a structured set of questions to produce a baseline statement for your organisation.</p>
+        <a class="button" href="baseline.html">Open the baseline tool</a>
+      </section>
+
+      <section class="card">
+        <h3>Allocation flow</h3>
+        <p>Test whether a person meets the six F3 gate conditions, and work through the device licensing checks.</p>
+        <a class="button" href="allocation.html">Open the allocation flow</a>
+      </section>
+
+      <!--
+      FEEDBACK SECTION: to switch this on, paste your form link in place of
+      FORM-LINK-HERE, then delete this note and the two marker lines around it.
+
+      START OF FEEDBACK SECTION
+      <h2>Share your feedback</h2>
+      <section class="card">
+        <h3>Tell us what you think</h3>
+        <p>Your feedback will help shape the next version of the framework.</p>
+        <a class="button" href="FORM-LINK-HERE">Give feedback</a>
+      </section>
+      END OF FEEDBACK SECTION
+      -->
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      Digital Office for Scottish Local Government
+    </div>
+  </footer>
+</body>
+</html>
