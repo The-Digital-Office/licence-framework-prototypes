@@ -1,0 +1,100 @@
+# publiccode.yml: describes this software using the publiccode.yml standard.
+# Specification: https://yml.publiccode.tools
+#
+# Required for PUBLIC SOFTWARE repositories in The Digital Office. If this
+# repository is documentation rather than software, add the 'documentation'
+# topic to the repository and delete this file.
+#
+# Values starting with "TODO" must be completed. They are warnings until the
+# first release tag, then errors. Lines marked "Review" have a sensible
+# default that you should confirm. Everything else is a Digital Office default.
+
+publiccodeYmlVersion: "0"
+
+name: "licence-framework-prototypes"
+url: "https://github.com/The-Digital-Office/licence-framework-prototypes"
+landingURL: "https://the-digital-office.github.io/licence-framework-prototypes/"
+
+# Review: how people use the software: web, windows, mac, linux, ios, android.
+platforms:
+  - web
+
+# Review: concept, development, beta, stable or obsolete.
+developmentStatus: development
+
+# Review: standalone/web, standalone/backend, standalone/desktop,
+# standalone/mobile, standalone/iot, standalone/other, addon, library,
+# configurationFiles.
+softwareType: "standalone/web"
+
+# Review: one or more values from
+# https://yml.publiccode.tools/categories-list.html
+categories:
+  - it-asset-management
+  - compliance-management
+
+organisation:
+  uri: "https://github.com/The-Digital-Office"
+  name: "The Digital Office for Scottish Local Government"
+
+intendedAudience:
+  countries:
+    - GB
+  scope:
+    - local-authorities
+    - government
+
+description:
+  en:
+    shortDescription: >-
+      Prototype tools to help councils make consistent, defensible Microsoft
+      365 licensing decisions.
+    longDescription: >-
+      Clickable prototypes of the Licence Audit and Allocation Framework,
+      developed by the LocalGov M365 Foundations Programme for Scottish local
+      authorities.
+
+
+      The organisational baseline tool is used once per council by its
+      security, information governance and IT leads. They answer 20 yes or no
+      questions about the security, compliance and identity capabilities
+      every user should have, and can add special groups (such as privileged
+      administrators) that need more. The tool translates the answers into a
+      licence stack for frontline and desktop staff (F3 or E3, plus the
+      Security and Compliance add-ons where needed), and produces a pasteable
+      baseline and a plain-English statement for sign-off.
+
+
+      The allocation flow is used by the service desk for each person. It
+      applies the council baseline and runs two gates: whether the person is
+      eligible for Frontline Worker licensing under Microsoft's Product
+      Terms, and whether F3 is technically suitable for their work. It then
+      records special group membership, specialist capabilities with a
+      business justification, duration and the commercial check, and
+      produces a decision record. A separate flow assesses shared-device
+      scenarios for device-based licensing.
+
+
+      Each tool is a single self-contained HTML page that runs in the browser
+      with no server, build step or external dependencies. These are
+      prototypes for comment and are not final guidance.
+    features:
+      - "Organisational baseline statement for Microsoft 365 capabilities"
+      - "Frontline Worker eligibility and F3 suitability checks for each person"
+      - "Device licensing checks"
+      - "Decision record for HR and IT"
+
+legal:
+  license: MIT
+  mainCopyrightOwner: "The Digital Office for Scottish Local Government"
+
+maintenance:
+  type: internal
+  contacts:
+    - name: "Monika Franko"
+      affiliation: "The Digital Office for Scottish Local Government"
+
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - en
