@@ -14,8 +14,8 @@ The prototypes are published at
 
 | Prototype | File | What it does |
 |---|---|---|
-| Organisational baseline tool | [`baseline.html`](baseline.html) | Works through a structured set of questions to produce a baseline statement for the organisation. |
-| Allocation flow | [`allocation.html`](allocation.html) | Tests whether a person meets the six F3 gate conditions, and works through the device licensing checks. |
+| Organisational baseline tool | [`baseline.html`](baseline.html) | Turns a council's yes or no answers on required capabilities into a licence baseline and a plain-English statement for sign-off. |
+| Allocation flow | [`allocation.html`](allocation.html) | Checks whether a person is eligible for, and suited to, a Frontline Worker (F3) licence, records any specialist needs, and produces a decision record. Includes a shared-device flow. |
 
 ## Getting started
 

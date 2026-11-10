@@ -55,17 +55,24 @@ description:
       authorities.
 
 
-      The organisational baseline tool guides a short session through a
-      structured set of questions about the security, compliance and
-      productivity capabilities a council needs, and produces a baseline
-      statement used as the reference for every licence allocation and audit
-      in the year ahead.
+      The organisational baseline tool is used once per council by its
+      security, information governance and IT leads. They answer 20 yes or no
+      questions about the security, compliance and identity capabilities
+      every user should have, and can add special groups (such as privileged
+      administrators) that need more. The tool translates the answers into a
+      licence stack for frontline and desktop staff (F3 or E3, plus the
+      Security and Compliance add-ons where needed), and produces a pasteable
+      baseline and a plain-English statement for sign-off.
 
 
-      The allocation flow tests whether a person meets the six F3 gate
-      conditions, captures any additional requirements as named capabilities,
-      and works through the device licensing checks, producing a decision
-      record that tells HR and IT what to provision.
+      The allocation flow is used by the service desk for each person. It
+      applies the council baseline and runs two gates: whether the person is
+      eligible for Frontline Worker licensing under Microsoft's Product
+      Terms, and whether F3 is technically suitable for their work. It then
+      records special group membership, specialist capabilities with a
+      business justification, duration and the commercial check, and
+      produces a decision record. A separate flow assesses shared-device
+      scenarios for device-based licensing.
 
 
       Each tool is a single self-contained HTML page that runs in the browser
@@ -73,7 +80,7 @@ description:
       prototypes for comment and are not final guidance.
     features:
       - "Organisational baseline statement for Microsoft 365 capabilities"
-      - "F3 gate conditions check for individual licence allocation"
+      - "Frontline Worker eligibility and F3 suitability checks for each person"
       - "Device licensing checks"
       - "Decision record for HR and IT"
 
